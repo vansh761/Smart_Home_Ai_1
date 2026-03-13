@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — AI Smart Home Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:        #080c14;
+  --surface:   #0d1420;
+  --surface2:  #111a2b;
+  --border:    #1e3050;
+  --accent:    #00d4ff;
+  --accent2:   #7c3aed;
+  --accent3:   #10b981;
+  --warn:      #f59e0b;
+  --danger:    #ef4444;
+  --text:      #e2e8f0;
+  --text-dim:  #64748b;
+  --glow:      0 0 20px rgba(0, 212, 255, 0.15);
+  --mono:      'Space Mono', monospace;
+  --sans:      'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated grid background */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Header ───────────────────────────────────────────────── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,12,20,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+
+.logo {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.logo-dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+.header-right {
+  display: flex; align-items: center; gap: 1.5rem;
+  font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim);
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border: 1px solid var(--accent3);
+  border-radius: 3px;
+  color: var(--accent3);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ─── Layout ────────────────────────────────────────────────── */
+main {
+  position: relative; z-index: 1;
+  max-width: 1440px; margin: 0 auto;
+  padding: 1.5rem 2rem;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+}
+
+/* ─── Sidebar ────────────────────────────────────────────────── */
+.sidebar {
+  display: flex; flex-direction: column; gap: 1rem;
+}
+
+/* ─── Cards ──────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.card:hover { border-color: rgba(0,212,255,0.3); }
+
+.card-title {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.card-title::before {
+  content: '//';
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+/* ─── Room Status ────────────────────────────────────────────── */
+.room-metrics { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.metric {
+  display: flex; flex-direction: column; gap: 4px;
+}
+
+.metric-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.8rem;
+}
+
+.metric-label { color: var(--text-dim); font-size: 0.72rem; }
+.metric-value { font-family: var(--mono); font-size: 0.9rem; color: var(--accent); }
+
+.metric-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.metric-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s ease;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+}
+
+/* ─── Mood Display ───────────────────────────────────────────── */
+.mood-card {
+  text-align: center;
+  padding: 1.5rem 1.25rem;
+}
+
+.mood-emoji {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 0 12px rgba(0,212,255,0.4));
+}
+
+.mood-label {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.mood-score {
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text);
+  font-family: var(--mono);
+}
+
+.mood-score span { font-size: 1rem; color: var(--text-dim); }
+
+.mood-input-row {
+  display: flex; gap: 6px;
+  margin-top: 0.75rem;
+}
+
+.mood-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.mood-input:focus { border-color: var(--accent); }
+.mood-input::placeholder { color: var(--text-dim); }
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+.btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(0,212,255,0.15);
+}
+
+.btn-accent {
+  background: rgba(0,212,255,0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-accent:hover {
+  background: rgba(0,212,255,0.2);
+}
+
+.btn-sm { padding: 5px 10px; font-size: 0.65rem; }
+
+/* ─── Main content ───────────────────────────────────────────── */
+.content { display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* ─── Top row: Energy + Sleep ─────────────────────────────────── */
+.top-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+/* ─── Charts ─────────────────────────────────────────────────── */
+.chart-wrap {
+  position: relative;
+  height: 180px;
+}
+
+/* ─── Appliance Controls ─────────────────────────────────────── */
+.appliances {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.appliance-tile {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.appliance-tile:hover { border-color: rgba(0,212,255,0.4); }
+
+.appliance-tile.active {
+  border-color: var(--accent3);
+  background: rgba(16,185,129,0.05);
+}
+
+.appliance-icon { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; }
+.appliance-name { font-size: 0.7rem; color: var(--text-dim); font-family: var(--mono); }
+.appliance-state {
+  font-size: 0.65rem;
+  font-family: var(--mono);
+  margin-top: 4px;
+  letter-spacing: 0.08em;
+}
+
+.appliance-tile.active .appliance-state { color: var(--accent3); }
+.appliance-tile:not(.active) .appliance-state { color: var(--text-dim); }
+
+/* ─── Voice ───────────────────────────────────────────────────── */
+.voice-row {
+  display: flex; gap: 0.75rem;
+  align-items: center;
+}
+
+.voice-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.voice-input:focus { border-color: var(--accent); }
+.voice-input::placeholder { color: var(--text-dim); }
+
+.voice-response {
+  margin-top: 0.75rem;
+  padding: 10px 14px;
+  background: rgba(0,212,255,0.05);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-family: var(--mono);
+  display: none;
+}
+
+/* ─── Users / Harmonizer ─────────────────────────────────────── */
+.users-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.user-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.user-row:hover { border-color: var(--border); }
+
+.user-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.user-info { flex: 1; }
+.user-name { font-size: 0.8rem; font-weight: 500; }
+.user-mood { font-size: 0.68rem; color: var(--text-dim); font-family: var(--mono); }
+
+.user-toggle {
+  width: 36px; height: 20px;
+  background: var(--border);
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.user-toggle.on { background: var(--accent3); }
+
+.user-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.user-toggle.on::after { transform: translateX(16px); }
+
+/* ─── Alerts ─────────────────────────────────────────────────── */
+.alerts-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.alert-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+}
+
+.alert-item.warning {
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.3);
+  color: var(--warn);
+}
+
+.alert-item.info {
+  background: rgba(0,212,255,0.05);
+  border: 1px solid rgba(0,212,255,0.2);
+  color: var(--accent);
+}
+
+.no-alerts {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-family: var(--mono);
+  text-align: center;
+  padding: 12px;
+}
+
+/* ─── AI Recommendations ─────────────────────────────────────── */
+.recs-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.rec-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 10px;
+  background: rgba(124,58,237,0.06);
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: #c4b5fd;
+}
+
+.rec-icon { flex-shrink: 0; margin-top: 1px; }
+
+/* ─── Memory Stats ───────────────────────────────────────────── */
+.memory-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.memory-stat {
+  background: var(--surface2);
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.memory-stat-val {
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  color: var(--accent);
+  display: block;
+}
+
+.memory-stat-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ─── Sleep score ring ───────────────────────────────────────── */
+.sleep-score-wrap {
+  display: flex; align-items: center; gap: 1rem;
+}
+
+.sleep-ring {
+  position: relative;
+  width: 80px; height: 80px;
+  flex-shrink: 0;
+}
+
+.sleep-ring svg { transform: rotate(-90deg); }
+
+.sleep-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: var(--mono);
+}
+
+.sleep-ring-score {
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text);
+}
+
+.sleep-ring-label {
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.sleep-details { flex: 1; }
+.sleep-grade {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.sleep-desc { font-size: 0.72rem; color: var(--text-dim); line-height: 1.4; }
+
+/* ─── Energy summary cards ───────────────────────────────────── */
+.energy-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.energy-num {
+  text-align: center;
+  padding: 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+}
+
+.energy-num-val {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  color: var(--accent3);
+  display: block;
+}
+
+.energy-num-label {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* ─── Responsive tweaks ─────────────────────────────────────── */
+@media (max-width: 1100px) {
+  main { grid-template-columns: 1fr; }
+  .top-row { grid-template-columns: 1fr; }
+  .appliances { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ─── Fade in ───────────────────────────────────────────────── */
+.card { animation: fadeUp 0.4s ease both; }
+.card:nth-child(2) { animation-delay: 0.05s; }
+.card:nth-child(3) { animation-delay: 0.1s; }
+.card:nth-child(4) { animation-delay: 0.15s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.harmonize-result {
+  margin-top: 0.75rem;
+  padding: 8px 10px;
+  background: rgba(16,185,129,0.05);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: var(--accent3);
+  font-family: var(--mono);
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    NEXUS HOME AI
+  </div>
+  <div class="header-right">
+    <span id="clock">--:--:--</span>
+    <span class="status-badge">SIM MODE</span>
+    <button class="btn btn-sm" onclick="tickSimulation()">⏭ TICK +5m</button>
+    <button class="btn btn-sm" onclick="resetSim()">↺ RESET</button>
+  </div>
+</header>
+
+<main>
+  <!-- ═══ SIDEBAR ═══ -->
+  <div class="sidebar">
+
+    <!-- Room Conditions -->
+    <div class="card">
+      <div class="card-title">Room Conditions</div>
+      <div class="room-metrics">
+        <div class="metric">
+          <div class="metric-header">
+            <span class="metric-label">Temperature</span>
+            <span class="metric-value" id="temp-val">22.0°C</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" id="temp-bar" style="width:55%; background: linear-gradient(90deg,#7c3aed,#ef4444)"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-header">
+            <span class="metric-label">Humidity</span>
+            <span class="metric-value" id="humid-val">55%</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" id="humid-bar" style="width:55%"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-header">
+            <span class="metric-label">Noise Level</span>
+            <span class="metric-value" id="noise-val">35 dB</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" id="noise-bar" style="width:35%; background: linear-gradient(90deg,#10b981,#f59e0b)"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-header">
+            <span class="metric-label">Light Level</span>
+            <span class="metric-value" id="light-val">70%</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" id="light-bar" style="width:70%; background: linear-gradient(90deg,#f59e0b,#fef08a)"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-header">
+            <span class="metric-label">CO₂</span>
+            <span class="metric-value" id="co2-val">450 ppm</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" id="co2-bar" style="width:20%; background: linear-gradient(90deg,#10b981,#ef4444)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mood -->
+    <div class="card mood-card">
+      <div class="card-title">Emotional State</div>
+      <span class="mood-emoji" id="mood-emoji">😐</span>
+      <div class="mood-label" id="mood-label">NEUTRAL</div>
+      <div class="mood-score" id="mood-score">60 <span>/ 100</span></div>
+      <div class="mood-input-row">
+        <input class="mood-input" id="mood-text" placeholder="How are you feeling?" 
+               onkeydown="if(event.key==='Enter') analyzeMood()">
+        <button class="btn btn-accent btn-sm" onclick="analyzeMood()">→</button>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="card">
+      <div class="card-title">Active Users</div>
+      <div class="users-grid" id="users-list">
+        <!-- Populated by JS -->
+      </div>
+      <button class="btn btn-sm" style="width:100%; margin-top:0.75rem" onclick="harmonizeUsers()">
+        ⚖ Harmonize Preferences
+      </button>
+      <div class="harmonize-result" id="harmonize-result"></div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="card">
+      <div class="card-title">System Alerts</div>
+      <div class="alerts-list" id="alerts-list">
+        <div class="no-alerts">// All systems nominal</div>
+      </div>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <div class="content">
+
+    <!-- Energy + Sleep row -->
+    <div class="top-row">
+
+      <!-- Energy -->
+      <div class="card">
+        <div class="card-title">Energy Intelligence</div>
+        <div class="energy-summary">
+          <div class="energy-num">
+            <span class="energy-num-val" id="energy-kwh">0.0</span>
+            <span class="energy-num-label">kWh Now</span>
+          </div>
+          <div class="energy-num">
+            <span class="energy-num-val" id="energy-cost">$0.00</span>
+            <span class="energy-num-label">Today Cost</span>
+          </div>
+          <div class="energy-num">
+            <span class="energy-num-val" id="energy-co2">0kg</span>
+            <span class="energy-num-label">CO₂</span>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="energyChart"></canvas>
+        </div>
+        <button class="btn btn-sm" style="margin-top:0.75rem" onclick="loadEnergyPredictions()">
+          ⚡ Refresh Predictions
+        </button>
+      </div>
+
+      <!-- Sleep Score -->
+      <div class="card">
+        <div class="card-title">Sleep & Comfort</div>
+        <div class="sleep-score-wrap" style="margin-bottom: 1rem;">
+          <div class="sleep-ring">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="var(--border)" stroke-width="6"/>
+              <circle id="sleep-arc" cx="40" cy="40" r="34" fill="none"
+                      stroke="var(--accent)" stroke-width="6"
+                      stroke-linecap="round"
+                      stroke-dasharray="213.6"
+                      stroke-dashoffset="85.4"/>
+            </svg>
+            <div class="sleep-ring-text">
+              <span class="sleep-ring-score" id="sleep-ring-score">60</span>
+              <span class="sleep-ring-label">score</span>
+            </div>
+          </div>
+          <div class="sleep-details">
+            <div class="sleep-grade" id="sleep-grade">Fair</div>
+            <div class="sleep-desc" id="sleep-desc">Optimizing room conditions for better rest</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="sleepChart"></canvas>
+        </div>
+        <button class="btn btn-sm" style="margin-top:0.75rem" onclick="optimizeSleep()">
+          🌙 Optimize for Sleep
+        </button>
+      </div>
+
+    </div><!-- /top-row -->
+
+    <!-- Appliance Controls -->
+    <div class="card">
+      <div class="card-title">Appliance Control — Manual Override</div>
+      <div class="appliances" id="appliances-grid">
+        <!-- Built by JS -->
+      </div>
+    </div>
+
+    <!-- Voice Assistant -->
+    <div class="card">
+      <div class="card-title">Voice Assistant</div>
+      <div class="voice-row">
+        <input class="voice-input" id="voice-cmd" 
+               placeholder="Say something… e.g. 'turn on the lights' or 'I feel stressed'"
+               onkeydown="if(event.key==='Enter') sendVoiceCommand()">
+        <button class="btn btn-accent" onclick="sendVoiceCommand()">⬤ Send</button>
+        <button class="btn" onclick="startListening()" title="Microphone (requires hardware)">🎙</button>
+      </div>
+      <div class="voice-response" id="voice-response"></div>
+
+      <div style="margin-top:0.75rem; display:flex; flex-wrap:wrap; gap:6px;">
+        <button class="btn btn-sm" onclick="quickCmd('sleep mode')">🌙 Sleep Mode</button>
+        <button class="btn btn-sm" onclick="quickCmd('good morning')">☀️ Morning</button>
+        <button class="btn btn-sm" onclick="quickCmd('energy report')">⚡ Energy</button>
+        <button class="btn btn-sm" onclick="quickCmd('turn on the lights')">💡 Lights On</button>
+        <button class="btn btn-sm" onclick="quickCmd('turn off the lights')">🌑 Lights Off</button>
+        <button class="btn btn-sm" onclick="quickCmd('I feel stressed')">😰 I Feel Stressed</button>
+        <button class="btn btn-sm" onclick="quickCmd('I feel happy')">😊 I Feel Happy</button>
+        <button class="btn btn-sm" onclick="quickCmd('set temperature to 20')">🌡 Set 20°C</button>
+      </div>
+    </div>
+
+    <!-- Mood History Chart + Memory -->
+    <div class="top-row">
+
+      <div class="card">
+        <div class="card-title">Mood Timeline</div>
+        <div class="chart-wrap" style="height:160px">
+          <canvas id="moodChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Adaptive Memory</div>
+        <div class="memory-stats" id="memory-stats">
+          <div class="memory-stat">
+            <span class="memory-stat-val" id="mem-prefs">0</span>
+            <span class="memory-stat-label">Preferences Logged</span>
+          </div>
+          <div class="memory-stat">
+            <span class="memory-stat-val" id="mem-days">7</span>
+            <span class="memory-stat-label">Learning Days</span>
+          </div>
+          <div class="memory-stat">
+            <span class="memory-stat-val" id="mem-users">1</span>
+            <span class="memory-stat-label">Users Tracked</span>
+          </div>
+          <div class="memory-stat">
+            <span class="memory-stat-val" id="mem-acc">+23%</span>
+            <span class="memory-stat-label">Accuracy Gain</span>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <div class="card-title" style="margin-bottom:0.5rem;">AI Recommendations</div>
+          <div class="recs-list" id="recs-list">
+            <div class="rec-item"><span class="rec-icon">✦</span> Analyzing your patterns...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  NEXUS Dashboard — Frontend Logic
+// ═══════════════════════════════════════════════════════════════
+
+const API = '';  // Same-origin; change to 'http://localhost:5000' if needed
+
+// ─── Chart instances ──────────────────────────────────────────
+let energyChart, sleepChart, moodChart;
+const moodHistory = [];
+
+// Chart defaults
+Chart.defaults.color           = '#64748b';
+Chart.defaults.borderColor     = '#1e3050';
+Chart.defaults.font.family     = "'Space Mono', monospace";
+Chart.defaults.font.size       = 10;
+
+// ─── Init ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initEnergyChart();
+  initSleepChart();
+  initMoodChart();
+  initAppliances();
+  loadStatus();
+  loadEnergyPredictions();
+  setInterval(loadStatus, 5000);         // Refresh every 5s
+  setInterval(updateClock, 1000);
+});
+
+function updateClock() {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('en-US', {hour12: false});
+}
+
+// ─── Status refresh ───────────────────────────────────────────
+async function loadStatus() {
+  try {
+    const data = await fetch(`${API}/api/status`).then(r => r.json());
+    updateRoomMetrics(data.simulation);
+    updateMoodDisplay(data.mood);
+    updateUsers(data.users);
+    updateAlerts(data.simulation.alerts || []);
+    updateMemory(data.memory);
+    updateSleepDisplay(data.sleep);
+    updateEnergySummary(data.energy);
+    updateRecommendations(data);
+    updateApplianceStates(data.simulation);
+  } catch(e) {
+    console.warn('API not available — running in demo mode');
+    demoMode();
+  }
+}
+
+// ─── Room Metrics ─────────────────────────────────────────────
+function updateRoomMetrics(sim) {
+  if (!sim) return;
+  set('temp-val',  `${sim.temperature}°C`);
+  set('humid-val', `${sim.humidity}%`);
+  set('noise-val', `${sim.noise_level} dB`);
+  set('light-val', `${Math.round(sim.light_level)}%`);
+  set('co2-val',   `${sim.co2_level} ppm`);
+
+  bar('temp-bar',  ((sim.temperature - 10) / 30) * 100);
+  bar('humid-bar', sim.humidity);
+  bar('noise-bar', (sim.noise_level / 100) * 100);
+  bar('light-bar', sim.light_level);
+  bar('co2-bar',   ((sim.co2_level - 400) / 1100) * 100);
+}
+
+function set(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function bar(id, pct) {
+  const el = document.getElementById(id);
+  if (el) el.style.width = Math.min(100, Math.max(0, pct)) + '%';
+}
+
+// ─── Mood ─────────────────────────────────────────────────────
+function updateMoodDisplay(mood) {
+  if (!mood) return;
+  set('mood-emoji', mood.emoji || '😐');
+  set('mood-label', (mood.mood || 'neutral').toUpperCase());
+  set('mood-score', `${mood.score || 60} `);
+  document.getElementById('mood-score').innerHTML =
+    `${mood.score || 60} <span>/ 100</span>`;
+
+  // Update mood history chart
+  moodHistory.push(mood.score || 60);
+  if (moodHistory.length > 20) moodHistory.shift();
+  if (moodChart) {
+    moodChart.data.labels = moodHistory.map((_, i) => i === moodHistory.length - 1 ? 'Now' : '');
+    moodChart.data.datasets[0].data = [...moodHistory];
+    moodChart.update('none');
+  }
+}
+
+async function analyzeMood() {
+  const text = document.getElementById('mood-text').value.trim();
+  if (!text) return;
+  try {
+    const res  = await fetch(`${API}/api/mood/analyze`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text, user_id: 'user1'})
+    }).then(r => r.json());
+    updateMoodDisplay(res);
+    document.getElementById('mood-text').value = '';
+    showVoiceResponse(`Mood detected: ${res.mood} ${res.emoji} — ${res.environment_changes?.reason || ''}`);
+  } catch {
+    // Demo fallback
+    const moods = ['happy','relaxed','focused','stressed','tired'];
+    const m     = moods[Math.floor(Math.random() * moods.length)];
+    updateMoodDisplay({mood: m, score: Math.floor(Math.random()*50)+40, emoji: '😊'});
+    document.getElementById('mood-text').value = '';
+  }
+}
+
+// ─── Sleep ────────────────────────────────────────────────────
+function updateSleepDisplay(sleep) {
+  if (!sleep) return;
+  const score = sleep.score || 60;
+  set('sleep-ring-score', Math.round(score));
+  set('sleep-grade',      sleep.grade || 'Fair');
+  set('sleep-desc',       sleep.summary || '');
+
+  // Update SVG arc
+  const arc  = document.getElementById('sleep-arc');
+  const circ = 2 * Math.PI * 34;  // r=34
+  if (arc) {
+    arc.style.strokeDashoffset = circ - (score / 100) * circ;
+    arc.style.stroke = score >= 75 ? 'var(--accent3)' : score >= 55 ? 'var(--accent)' : 'var(--danger)';
+  }
+
+  // Update sleep chart
+  if (sleepChart) {
+    const vals = sleepChart.data.datasets[0].data;
+    vals.push(score);
+    if (vals.length > 12) vals.shift();
+    sleepChart.update('none');
+  }
+}
+
+async function optimizeSleep() {
+  try {
+    const res = await fetch(`${API}/api/sleep/optimize`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({user_id: 'user1'})
+    }).then(r => r.json());
+    showVoiceResponse('🌙 ' + (res.advice?.[0] || 'Sleep optimization applied'));
+    loadStatus();
+  } catch {
+    showVoiceResponse('🌙 Sleep mode: Lowering temperature to 18°C, dimming lights.');
+  }
+}
+
+// ─── Energy ───────────────────────────────────────────────────
+function updateEnergySummary(energy) {
+  if (!energy) return;
+  set('energy-kwh',  energy.current_kwh || '0.0');
+  set('energy-cost', `$${energy.daily_cost || '0.00'}`);
+  set('energy-co2',  `${energy.co2_kg || '0'}kg`);
+}
+
+async function loadEnergyPredictions() {
+  try {
+    const res = await fetch(`${API}/api/energy/predict`).then(r => r.json());
+    if (energyChart && res.predictions) {
+      energyChart.data.labels                 = res.predictions.map(p => p.label);
+      energyChart.data.datasets[0].data       = res.predictions.map(p => p.kwh);
+      energyChart.data.datasets[0].pointBackgroundColor = res.predictions.map(p =>
+        p.peak ? '#ef4444' : '#10b981');
+      energyChart.update();
+    }
+  } catch {
+    // Already seeded with demo data
+  }
+}
+
+// ─── Users ────────────────────────────────────────────────────
+function updateUsers(users) {
+  if (!users) return;
+  const list = document.getElementById('users-list');
+  list.innerHTML = users.map(u => `
+    <div class="user-row">
+      <div class="user-avatar">${(u.name || u.id || '?')[0].toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${u.name || u.id}</div>
+        <div class="user-mood">${u.mood || 'neutral'} · ${u.score || 60}/100</div>
+      </div>
+      <div class="user-toggle ${u.active ? 'on' : ''}" onclick="this.classList.toggle('on')"></div>
+    </div>
+  `).join('');
+}
+
+async function harmonizeUsers() {
+  try {
+    const res = await fetch(`${API}/api/users/harmonize`).then(r => r.json());
+    const el  = document.getElementById('harmonize-result');
+    el.style.display = 'block';
+    el.textContent = res.message + (res.consensus
+      ? ` → ${res.consensus.temperature}°C / ${res.consensus.lights}% light` : '');
+  } catch {
+    const el = document.getElementById('harmonize-result');
+    el.style.display = 'block';
+    el.textContent = '→ Consensus: 20.5°C / 65% light (2 users balanced)';
+  }
+}
+
+// ─── Alerts ───────────────────────────────────────────────────
+function updateAlerts(alerts) {
+  const list = document.getElementById('alerts-list');
+  if (!alerts.length) {
+    list.innerHTML = '<div class="no-alerts">// All systems nominal</div>';
+    return;
+  }
+  list.innerHTML = alerts.map(a => `
+    <div class="alert-item ${a.type || 'info'}">
+      ${a.type === 'warning' ? '⚠' : 'ℹ'} ${a.msg}
+      ${a.action ? `<span style="opacity:.6; font-size:.68rem"> → ${a.action}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+// ─── Memory ───────────────────────────────────────────────────
+function updateMemory(memory) {
+  if (!memory) return;
+  set('mem-prefs', memory.total_preferences || 0);
+  set('mem-users', memory.users_tracked || 1);
+  set('mem-acc',   `+${memory.accuracy_improvement || '23%'}`);
+}
+
+// ─── Recommendations ──────────────────────────────────────────
+function updateRecommendations(data) {
+  const recs  = [];
+  const sim   = data.simulation || {};
+  const mood  = data.mood || {};
+  const sleep = data.sleep || {};
+
+  if (sim.temperature > 24)
+    recs.push('Temperature is high — consider enabling AC');
+  if (sim.co2_level > 800)
+    recs.push('Elevated CO₂ — open a window or enable ventilation');
+  if ((sleep.score || 60) < 65)
+    recs.push('Sleep score is low — adjusting temperature and light');
+  if (mood.mood === 'stressed')
+    recs.push('Stress detected — activating calm environment protocol');
+  if (mood.mood === 'tired')
+    recs.push('Fatigue detected — preparing sleep conditions');
+  if (!recs.length)
+    recs.push('Environment is optimized — no action needed ✓');
+
+  document.getElementById('recs-list').innerHTML = recs.map(r => `
+    <div class="rec-item"><span class="rec-icon">✦</span> ${r}</div>
+  `).join('');
+}
+
+// ─── Appliances ───────────────────────────────────────────────
+const APPLIANCES = [
+  {id: 'ac',          icon: '❄️', name: 'AC',          appliance: 'ac'},
+  {id: 'fan',         icon: '🌀', name: 'Fan',         appliance: 'fan'},
+  {id: 'lights',      icon: '💡', name: 'Lights',      appliance: 'lights'},
+  {id: 'heater',      icon: '🔥', name: 'Heater',      appliance: 'heater'},
+  {id: 'white_noise', icon: '🔊', name: 'White Noise', appliance: 'white_noise'},
+  {id: 'music',       icon: '🎵', name: 'Music',       appliance: 'music'},
+];
+
+function initAppliances() {
+  const grid = document.getElementById('appliances-grid');
+  grid.innerHTML = APPLIANCES.map(a => `
+    <div class="appliance-tile" id="tile-${a.id}" onclick="toggleAppliance('${a.id}', '${a.appliance}')">
+      <span class="appliance-icon">${a.icon}</span>
+      <div class="appliance-name">${a.name}</div>
+      <div class="appliance-state" id="state-${a.id}">OFF</div>
+    </div>
+  `).join('');
+}
+
+async function toggleAppliance(id, appliance) {
+  const tile    = document.getElementById(`tile-${id}`);
+  const isOn    = tile.classList.contains('active');
+  const newState = isOn ? 'off' : 'on';
+
+  tile.classList.toggle('active');
+  document.getElementById(`state-${id}`).textContent = newState.toUpperCase();
+
+  try {
+    await fetch(`${API}/api/simulation/appliance`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({appliance, state: newState, user_id: 'user1'})
+    });
+    loadStatus();
+  } catch {}
+}
+
+function updateApplianceStates(sim) {
+  if (!sim) return;
+  APPLIANCES.forEach(a => {
+    const appState = sim[a.appliance];
+    if (!appState) return;
+    const isOn  = typeof appState === 'object' ? appState.state === 'on' : appState === 'on';
+    const tile  = document.getElementById(`tile-${a.id}`);
+    const label = document.getElementById(`state-${a.id}`);
+    if (tile)  tile.classList.toggle('active', isOn);
+    if (label) label.textContent = isOn ? 'ON' : 'OFF';
+  });
+}
+
+// ─── Voice ────────────────────────────────────────────────────
+async function sendVoiceCommand() {
+  const cmd = document.getElementById('voice-cmd').value.trim();
+  if (!cmd) return;
+  document.getElementById('voice-cmd').value = '';
+
+  try {
+    const res = await fetch(`${API}/api/voice/command`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({command: cmd, user_id: 'user1'})
+    }).then(r => r.json());
+    showVoiceResponse(res.response || 'Command processed.');
+    loadStatus();
+  } catch {
+    showVoiceResponse(`Processing: "${cmd}" — API not available in demo mode.`);
+  }
+}
+
+function quickCmd(cmd) {
+  document.getElementById('voice-cmd').value = cmd;
+  sendVoiceCommand();
+}
+
+function showVoiceResponse(text) {
+  const el = document.getElementById('voice-response');
+  el.textContent = '⟩ ' + text;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 6000);
+}
+
+function startListening() {
+  showVoiceResponse('🎙 Microphone requires hardware mode + pyaudio installed. Type command instead.');
+}
+
+// ─── Simulation controls ──────────────────────────────────────
+async function tickSimulation() {
+  try {
+    await fetch(`${API}/api/simulation/tick`);
+    loadStatus();
+  } catch { demoTick(); }
+}
+
+async function resetSim() {
+  try {
+    await fetch(`${API}/api/simulation/reset`);
+    loadStatus();
+  } catch {}
+}
+
+// ─── Charts ───────────────────────────────────────────────────
+function initEnergyChart() {
+  const ctx = document.getElementById('energyChart').getContext('2d');
+  const hours = Array.from({length:24}, (_,i) => `${i.toString().padStart(2,'0')}:00`);
+  const demo  = hours.map((_,i) => 0.8 + Math.sin(i*0.5)*0.4 + Math.random()*0.2);
+
+  energyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: hours,
+      datasets: [{
+        label: 'kWh',
+        data: demo,
+        borderColor: '#00d4ff',
+        backgroundColor: 'rgba(0,212,255,0.06)',
+        fill: true,
+        tension: 0.4,
+        borderWidth: 1.5,
+        pointRadius: 2,
+        pointBackgroundColor: '#00d4ff'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { mode: 'index' } },
+      scales: {
+        x: { grid: { color: '#1e3050' }, ticks: { maxTicksLimit: 8 } },
+        y: { grid: { color: '#1e3050' }, title: { display: true, text: 'kWh' } }
+      }
+    }
+  });
+}
+
+function initSleepChart() {
+  const ctx  = document.getElementById('sleepChart').getContext('2d');
+  const demo = Array.from({length:12}, () => Math.floor(Math.random()*30)+50);
+
+  sleepChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: demo.map((_, i) => i === 11 ? 'Now' : ''),
+      datasets: [
+        {
+          label: 'Sleep Score',
+          data: demo,
+          backgroundColor: demo.map(v => v >= 75 ? 'rgba(16,185,129,0.6)' : v >= 55 ? 'rgba(0,212,255,0.4)' : 'rgba(239,68,68,0.4)'),
+          borderRadius: 3,
+          borderSkipped: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#1e3050' }, min: 0, max: 100 }
+      }
+    }
+  });
+}
+
+function initMoodChart() {
+  const ctx  = document.getElementById('moodChart').getContext('2d');
+  const demo = Array.from({length:10}, () => Math.floor(Math.random()*40)+40);
+
+  moodChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: demo.map((_, i) => i === 9 ? 'Now' : ''),
+      datasets: [{
+        label: 'Mood Score',
+        data: demo,
+        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(124,58,237,0.08)',
+        fill: true,
+        tension: 0.4,
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#7c3aed'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#1e3050' }, min: 0, max: 100,
+             title: { display: true, text: 'Wellness' } }
+      }
+    }
+  });
+  moodHistory.push(...demo);
+}
+
+// ─── Demo mode (no backend) ───────────────────────────────────
+function demoMode() {
+  const t   = Date.now() / 1000;
+  const sim = {
+    temperature:  22 + Math.sin(t * 0.1) * 2,
+    humidity:     55 + Math.cos(t * 0.07) * 5,
+    noise_level:  35 + Math.sin(t * 0.3) * 10,
+    light_level:  70 + Math.cos(t * 0.05) * 15,
+    co2_level:    450 + Math.floor(t % 100),
+    alerts:       []
+  };
+  updateRoomMetrics(sim);
+  updateEnergySummary({current_kwh: (0.8 + Math.random() * 0.4).toFixed(2), daily_cost: '2.14', co2_kg: '5.2'});
+  updateSleepDisplay({score: 68, grade: 'Fair', summary: 'Room conditions could be improved for better sleep'});
+  updateMoodDisplay({mood: 'neutral', score: 60, emoji: '😐'});
+  updateUsers([
+    {id:'user1', name:'Alice', mood:'neutral', score:60, active:true},
+    {id:'user2', name:'Bob',   mood:'relaxed', score:75, active:false}
+  ]);
+  updateMemory({total_preferences:14, users_tracked:2, accuracy_improvement:'23%'});
+  updateRecommendations({simulation: sim, mood:{mood:'neutral',score:60}, sleep:{score:68}});
+}
+
+function demoTick() {
+  demoMode();
+}
+
+// Start clock immediately
+updateClock();
+</script>
+</body>
+</html>
