@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — AI Smart Home Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#060810;--s1:#0a0e18;--s2:#0e1420;--s3:#121a2c;
+  --bd:#182238;--bd2:#1e2e48;--bd3:#243658;
+  --ac:#00d4ff;--ac2:#7c3aed;--ac3:#10b981;
+  --warn:#f59e0b;--err:#ef4444;--pink:#ec4899;
+  --tx:#dde4f0;--txd:#3d5570;--txm:#7a96b4;
+  --mono:"Space Mono",monospace;--sans:"Inter",sans-serif;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;min-height:100vh;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,212,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.02) 1px,transparent 1px);
+  background-size:52px 52px;}
+body::after{content:"";position:fixed;top:-20vh;right:-10vw;width:50vw;height:50vh;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse,rgba(124,58,237,.05) 0%,transparent 70%);}
+
+/* ── HEADER ─────────────────────────────────────────── */
+header{
+  position:sticky;top:0;z-index:300;
+  background:rgba(6,8,16,.94);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.5rem;height:52px;gap:1rem;
+}
+.logo{font-family:var(--mono);font-size:.9rem;letter-spacing:.2em;color:var(--ac);display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0}
+.logo-ring{width:28px;height:28px;border:1.5px solid var(--ac);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative}
+.logo-ring::after{content:"";position:absolute;width:8px;height:8px;background:var(--ac);border-radius:50%;box-shadow:0 0 10px var(--ac);animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
+
+.hbar{display:flex;align-items:center;gap:5px;flex:1;justify-content:center;flex-wrap:wrap}
+.hs{display:flex;align-items:center;gap:4px;padding:3px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:20px;font-family:var(--mono);font-size:.58rem;letter-spacing:.03em}
+.hs-l{color:var(--txd)}.hs-v{color:var(--ac3);font-weight:700}
+.hs-v.w{color:var(--warn)}.hs-v.e{color:var(--err)}.hs-v.p{color:var(--ac)}
+
+.hright{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.badge-sim{padding:3px 8px;border:1px solid rgba(0,212,255,.35);border-radius:3px;color:var(--ac);font-family:var(--mono);font-size:.56rem;letter-spacing:.12em}
+.hbtn{padding:4px 10px;border:1px solid var(--bd2);border-radius:4px;background:var(--s2);color:var(--txd);font-family:var(--mono);font-size:.58rem;cursor:pointer;transition:all .18s;white-space:nowrap}
+.hbtn:hover{border-color:var(--ac);color:var(--ac)}
+.hbtn.prim{border-color:rgba(16,185,129,.5);color:var(--ac3)}
+.hbtn.prim:hover{border-color:var(--ac3);background:rgba(16,185,129,.08)}
+#clock{font-family:var(--mono);font-size:.7rem;color:var(--txd);letter-spacing:.05em}
+
+/* ── SETUP MODAL ────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(6,8,16,.9);backdrop-filter:blur(12px);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal{background:var(--s1);border:1px solid var(--bd2);border-radius:12px;padding:1.75rem;width:100%;max-width:700px;max-height:88vh;overflow-y:auto}
+.modal::-webkit-scrollbar{width:3px}.modal::-webkit-scrollbar-thumb{background:var(--bd2)}
+
+.m-title{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ac);margin-bottom:1.5rem;display:flex;align-items:center;gap:8px}
+.m-title span{opacity:.4}
+.m-section{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ac2);margin-bottom:.65rem;margin-top:1.25rem;display:flex;align-items:center;gap:6px}
+.m-section::after{content:"";flex:1;height:1px;background:rgba(124,58,237,.2)}
+
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+@media(max-width:520px){.fg{grid-template-columns:1fr}}
+.fl{font-size:.67rem;color:var(--txm);margin-bottom:4px;font-weight:500;display:block}
+.fi{background:var(--s3);border:1px solid var(--bd);border-radius:6px;padding:8px 11px;color:var(--tx);font-family:var(--mono);font-size:.8rem;outline:none;width:100%;transition:border-color .2s}
+.fi:focus{border-color:var(--ac)}
+
+.rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;background:rgba(0,212,255,.03);border:1px solid rgba(0,212,255,.12);border-radius:8px;padding:1rem;margin-bottom:.5rem}
+@media(max-width:520px){.rate-grid{grid-template-columns:1fr}}
+.rate-item{display:flex;flex-direction:column;gap:5px}
+.rate-label{font-size:.66rem;color:var(--txm)}
+.rate-row{display:flex;align-items:center;gap:6px}
+.ri{background:var(--s3);border:1px solid var(--bd);border-radius:5px;padding:7px 9px;color:var(--ac3);font-family:var(--mono);font-size:.82rem;font-weight:700;width:90px;outline:none;text-align:right;transition:border-color .2s}
+.ri:focus{border-color:var(--ac3)}
+.ru{font-family:var(--mono);font-size:.62rem;color:var(--txd)}
+
+.dev-list{display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto;padding-right:4px}
+.dev-list::-webkit-scrollbar{width:3px}.dev-list::-webkit-scrollbar-thumb{background:var(--bd2)}
+.drow{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--s3);border:1px solid var(--bd);border-radius:6px;transition:border-color .18s}
+.drow:hover{border-color:var(--bd2)}
+.dic{font-size:1.35rem;width:34px;text-align:center;flex-shrink:0}
+.dinfo{flex:1}
+.dname{font-size:.78rem;font-weight:500}
+.dsub{font-size:.62rem;color:var(--txd);font-family:var(--mono)}
+.qc{display:flex;align-items:center;gap:6px}
+.qb{width:26px;height:26px;border:1px solid var(--bd2);border-radius:4px;background:var(--s2);color:var(--tx);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;line-height:1;font-family:var(--mono)}
+.qb:hover{border-color:var(--ac);color:var(--ac)}
+.qv{font-family:var(--mono);font-size:.88rem;color:var(--ac);min-width:22px;text-align:center;font-weight:700}
+
+.btn-launch{padding:11px;background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(124,58,237,.12));border:1px solid var(--ac);border-radius:7px;color:var(--ac);font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;cursor:pointer;transition:all .22s;width:100%;font-weight:700;margin-top:1.25rem}
+.btn-launch:hover{background:linear-gradient(135deg,rgba(0,212,255,.22),rgba(124,58,237,.22));box-shadow:0 0 20px rgba(0,212,255,.15)}
+
+/* ── LAYOUT ──────────────────────────────────────────── */
+main{position:relative;z-index:1;max-width:1520px;margin:0 auto;padding:.9rem 1.2rem;display:grid;grid-template-columns:252px 1fr;gap:.9rem}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
+.sidebar{display:flex;flex-direction:column;gap:.8rem}
+.content{display:flex;flex-direction:column;gap:.8rem}
+
+/* ── CARDS ───────────────────────────────────────────── */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:.95rem;animation:fu .32s ease both;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.12),transparent);pointer-events:none}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}.card:nth-child(4){animation-delay:.15s}
+
+.ct{font-family:var(--mono);font-size:.57rem;letter-spacing:.14em;text-transform:uppercase;color:var(--txd);margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between}
+.ct-l{display:flex;align-items:center;gap:5px;color:var(--txm)}
+.ct-l::before{content:"//";color:var(--ac);opacity:.5;font-size:.65rem}
+.ct-r{font-size:.56rem}
+
+/* ── METRICS ──────────────────────────────────────────── */
+.met-list{display:flex;flex-direction:column;gap:.6rem}
+.met{position:relative}
+.met-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.met-lbl{font-size:.67rem;color:var(--txd)}.met-val{font-family:var(--mono);font-size:.75rem;font-weight:700}
+.met-trk{height:3px;background:var(--bd);border-radius:2px;overflow:hidden}
+.met-bar{height:100%;border-radius:2px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.met-ideal{font-size:.56rem;color:var(--txd);margin-top:1px}
+
+/* ── MOOD ────────────────────────────────────────────── */
+.mood-wrap{text-align:center;padding:.45rem 0}
+.mood-em{font-size:2.6rem;display:block;margin-bottom:.22rem;filter:drop-shadow(0 0 12px rgba(0,212,255,.25));transition:all .5s cubic-bezier(.34,1.56,.64,1)}
+.mood-nm{font-family:var(--mono);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ac);margin-bottom:.1rem}
+.mood-sc{font-size:1.75rem;font-family:var(--mono);font-weight:300;transition:all .4s}
+.mood-sc sub{font-size:.62rem;color:var(--txd)}
+.mood-bw{height:4px;background:var(--bd);border-radius:2px;overflow:hidden;margin:.42rem 0}
+.mood-bf{height:100%;border-radius:2px;transition:width .9s ease;background:linear-gradient(90deg,var(--err),var(--warn),var(--ac3))}
+.mood-tag{display:inline-block;padding:3px 8px;border-radius:20px;font-size:.58rem;margin-top:.35rem;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.18);color:var(--ac);line-height:1.5;max-width:100%;word-wrap:break-word}
+.mood-in-row{display:flex;gap:5px;margin-top:.6rem}
+.minp{flex:1;background:var(--s3);border:1px solid var(--bd);border-radius:5px;padding:7px 10px;color:var(--tx);font-size:.76rem;outline:none;transition:border-color .2s}
+.minp:focus{border-color:var(--ac)}.minp::placeholder{color:var(--txd);font-size:.7rem}
+.mbtn{padding:7px 12px;border:1px solid var(--ac);border-radius:5px;background:rgba(0,212,255,.08);color:var(--ac);font-size:.78rem;cursor:pointer;font-weight:700;transition:all .18s}
+.mbtn:hover{background:rgba(0,212,255,.18)}
+.mood-ci{font-size:.58rem;color:var(--txd);font-family:var(--mono);text-align:center;margin-top:.3rem}
+
+/* ── USERS ───────────────────────────────────────────── */
+.urow{display:flex;align-items:center;gap:7px;padding:7px 8px;background:var(--s2);border-radius:5px;border:1px solid transparent;margin-bottom:5px;transition:all .18s}
+.urow:hover{border-color:var(--bd)}
+.uav{width:29px;height:29px;border-radius:50%;background:linear-gradient(135deg,var(--ac2),var(--ac));display:flex;align-items:center;justify-content:center;font-size:.63rem;font-weight:700;flex-shrink:0;color:#fff}
+.uinfo{flex:1;min-width:0}
+.uname{font-size:.76rem;font-weight:500}
+.umood{font-size:.6rem;color:var(--txd);font-family:var(--mono)}
+.utog{width:33px;height:18px;background:var(--bd);border-radius:9px;position:relative;cursor:pointer;transition:background .22s;flex-shrink:0}
+.utog.on{background:var(--ac3)}
+.utog::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .22s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.utog.on::after{transform:translateX(15px)}
+.harm-btn{padding:6px;border:1px solid var(--bd);border-radius:4px;background:var(--s2);color:var(--txd);font-family:var(--mono);font-size:.58rem;cursor:pointer;width:100%;margin-top:.45rem;transition:all .18s;text-align:center}
+.harm-btn:hover{border-color:var(--ac3);color:var(--ac3)}
+.harm-res{margin-top:.45rem;border-radius:5px;font-size:.66rem;font-family:var(--mono);display:none;padding:8px 10px;line-height:1.6}
+
+/* ── ALERTS ──────────────────────────────────────────── */
+.al{display:flex;align-items:flex-start;gap:6px;padding:7px 9px;border-radius:5px;font-size:.69rem;margin-bottom:4px;line-height:1.4}
+.al.warning{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.22);color:var(--warn)}
+.al.danger{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.22);color:var(--err)}
+.al.info{background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.16);color:var(--ac)}
+.no-al{color:var(--txd);font-size:.68rem;font-family:var(--mono);text-align:center;padding:10px}
+
+/* ── 2-COL ───────────────────────────────────────────── */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+@media(max-width:780px){.row2{grid-template-columns:1fr}}
+
+/* ── ENERGY ──────────────────────────────────────────── */
+.eg{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:.7rem}
+.es{background:var(--s2);border-radius:6px;padding:8px;text-align:center;border:1px solid var(--bd)}
+.esv{font-family:var(--mono);font-size:.9rem;font-weight:700;display:block;color:var(--ac3);margin-bottom:1px}
+.esl{font-size:.55rem;color:var(--txd);text-transform:uppercase;letter-spacing:.06em}
+.chart-wrap{position:relative;height:155px}
+.chart-wrap-sm{position:relative;height:108px}
+
+/* ── SLEEP ───────────────────────────────────────────── */
+.sltop{display:flex;align-items:center;gap:.9rem;margin-bottom:.65rem}
+.ring{position:relative;width:74px;height:74px;flex-shrink:0}
+.ring-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono)}
+.ring-sc{font-size:1.08rem;line-height:1;font-weight:700}
+.ring-lb{font-size:.44rem;color:var(--txd);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
+.sl-det .sg{font-size:.88rem;font-weight:600;margin-bottom:3px}
+.sl-det .sd{font-size:.65rem;color:var(--txd);line-height:1.4}
+.sl-conds{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:.6rem}
+.sl-c{background:var(--s2);border-radius:4px;padding:5px;text-align:center;border:1px solid var(--bd)}
+.sl-cv{font-family:var(--mono);font-size:.76rem;font-weight:700;display:block;margin-bottom:1px}
+.sl-cl{font-size:.54rem;color:var(--txd)}
+
+/* ── DEVICES ──────────────────────────────────────────── */
+.dev-sec{margin-bottom:.9rem}
+.dev-sec-hd{font-family:var(--mono);font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.5rem;padding-bottom:.4rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.dev-sec-hd-l{display:flex;align-items:center;gap:6px;color:var(--txm)}
+.dev-sec-load{font-family:var(--mono);font-size:.56rem;color:var(--txd)}
+.dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:6px}
+.dtile{background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:.65rem .6rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.dtile::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.02),transparent);pointer-events:none}
+.dtile:hover{transform:translateY(-2px);border-color:rgba(0,212,255,.3);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.dtile.on{border-color:var(--ac3);background:rgba(16,185,129,.06)}
+.dtile.on::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(16,185,129,.04),transparent);pointer-events:none}
+.dtile.warn-on{border-color:var(--warn);background:rgba(245,158,11,.05)}
+.dtile.qty0{opacity:.38;cursor:not-allowed}
+.dtile-ic{font-size:1.3rem;display:block;margin-bottom:.28rem}
+.dtile-nm{font-size:.64rem;font-weight:600;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtile-w{font-family:var(--mono);font-size:.57rem;color:var(--warn)}
+.dtile-r{font-family:var(--mono);font-size:.55rem;color:var(--txd)}
+.dtile-st{font-family:var(--mono);font-size:.56rem;margin-top:4px;letter-spacing:.08em;font-weight:700}
+.dtile.on .dtile-st{color:var(--ac3)}.dtile:not(.on) .dtile-st{color:var(--txd)}
+.dtile-cost{font-family:var(--mono);font-size:.54rem;color:var(--ac);margin-top:1px;min-height:.7rem}
+.dtile-qty-badge{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;background:var(--s3);border:1px solid var(--bd2);font-family:var(--mono);font-size:.5rem;display:flex;align-items:center;justify-content:center;color:var(--txd)}
+
+/* ── POWER ADVISOR ────────────────────────────────────── */
+.adv-panel{background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:.95rem;margin-top:.8rem}
+.adv-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem}
+.adv-title{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);display:flex;align-items:center;gap:6px}
+.adv-title::before{content:"⚡";font-size:.8rem}
+.adv-analyze{padding:4px 12px;border:1px solid var(--ac);border-radius:4px;background:rgba(0,212,255,.07);color:var(--ac);font-family:var(--mono);font-size:.6rem;cursor:pointer;font-weight:700;transition:all .18s}
+.adv-analyze:hover{background:rgba(0,212,255,.18)}
+
+.pwrbar-hd{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.62rem;margin-bottom:4px}
+.pwrbar-bg{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;position:relative}
+.pwrbar-fill{height:100%;border-radius:4px;transition:width .85s cubic-bezier(.4,0,.2,1)}
+.pwrbar-zones{display:flex;justify-content:space-between;font-size:.54rem;color:var(--txd);margin-top:3px;margin-bottom:.7rem}
+
+.adv-warn{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.22);border-radius:5px;margin-bottom:5px}
+.adv-warn-msg{font-size:.72rem;color:var(--err);font-weight:500}
+.adv-warn-act{font-size:.63rem;color:var(--txd);margin-top:1px}
+
+.adv-sh{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;font-weight:700;margin:.6rem 0 .35rem;padding-left:2px}
+.adv-item{display:flex;gap:8px;align-items:flex-start;padding:7px 9px;border-radius:5px;margin-bottom:4px;cursor:pointer;transition:opacity .18s}
+.adv-item:hover{opacity:.82}
+.adv-item.aoff{background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.16)}
+.adv-item.aon{background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.16)}
+.adv-item.awrn{background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.16);cursor:default}
+.adv-item.awrn:hover{opacity:1}
+.adv-nm{font-size:.71rem;font-weight:600;display:block;margin-bottom:1px}
+.adv-rs{font-size:.63rem;color:var(--txd);line-height:1.4}
+.adv-ok{text-align:center;padding:12px;color:var(--ac3);font-family:var(--mono);font-size:.7rem;letter-spacing:.05em}
+
+.adv-footer{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:.65rem}
+.afs{background:var(--s3);border-radius:5px;padding:7px;text-align:center}
+.afsv{font-family:var(--mono);font-size:.82rem;font-weight:700;display:block;margin-bottom:1px}
+.afsl{font-size:.55rem;color:var(--txd);text-transform:uppercase}
+
+/* ── BILL ─────────────────────────────────────────────── */
+.bill-panel{margin-top:.75rem;padding:.9rem;background:rgba(239,68,68,.03);border:1px solid rgba(239,68,68,.18);border-radius:7px}
+.bill-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:.65rem}
+.bc{background:var(--s2);border-radius:6px;padding:9px;text-align:center}
+.bcv{font-family:var(--mono);font-size:.95rem;font-weight:700;display:block;margin-bottom:1px}
+.bcl{font-size:.55rem;color:var(--txd);text-transform:uppercase}
+.bill-break{font-size:.67rem;color:var(--txd);line-height:1.95}
+.bill-break span{color:var(--tx);font-family:var(--mono);font-weight:500}
+.bill-tip{margin-top:.6rem;padding:7px 9px;background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15);border-radius:4px;font-size:.66rem;color:var(--ac)}
+
+/* ── VOICE ────────────────────────────────────────────── */
+.vrow{display:flex;gap:6px;margin-bottom:.55rem}
+.vinp{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:9px 12px;color:var(--tx);font-size:.78rem;outline:none;transition:border-color .2s}
+.vinp:focus{border-color:var(--ac)}.vinp::placeholder{color:var(--txd);font-size:.72rem}
+.vsend{padding:9px 14px;border:1px solid var(--ac);border-radius:5px;background:rgba(0,212,255,.09);color:var(--ac);font-family:var(--mono);font-size:.66rem;cursor:pointer;font-weight:700;transition:all .18s}
+.vsend:hover{background:rgba(0,212,255,.2)}
+.vresp{padding:8px 12px;background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.15);border-radius:5px;font-size:.72rem;color:var(--ac);font-family:var(--mono);display:none;margin-bottom:.55rem;line-height:1.55;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.qbtns{display:flex;flex-wrap:wrap;gap:4px}
+.qb{padding:4px 9px;border:1px solid var(--bd);border-radius:3px;background:var(--s2);color:var(--txd);font-size:.6rem;font-family:var(--mono);cursor:pointer;transition:all .18s}
+.qb:hover{border-color:var(--ac);color:var(--ac);background:rgba(0,212,255,.05)}
+.qb.qb-mood{border-color:rgba(124,58,237,.35);color:#a78bfa}
+.qb.qb-mood:hover{border-color:var(--ac2);background:rgba(124,58,237,.08)}
+
+/* ── MEMORY ───────────────────────────────────────────── */
+.mem-g{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-bottom:.7rem}
+.ms{background:var(--s2);padding:9px;border-radius:5px;text-align:center;border:1px solid var(--bd)}
+.msv{font-family:var(--mono);font-size:1.02rem;font-weight:700;color:var(--ac);display:block;margin-bottom:1px}
+.msl{font-size:.55rem;color:var(--txd);text-transform:uppercase}
+.pat-list{font-size:.67rem;color:var(--txd);line-height:2;border-top:1px solid var(--bd);padding-top:.55rem;margin-top:.4rem}
+.pat-item::before{content:"→ ";color:var(--ac);opacity:.5}
+
+.recs-list{display:flex;flex-direction:column;gap:5px}
+.rec{display:flex;gap:7px;align-items:flex-start;padding:7px 9px;background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.16);border-radius:5px;font-size:.69rem;color:#c4b5fd;line-height:1.45}
+.rec-icon{flex-shrink:0;margin-top:1px;opacity:.7}
+
+/* ── MOOD STATS ───────────────────────────────────────── */
+.mood-st-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:.6rem}
+.mst{text-align:center;background:var(--s2);border-radius:4px;padding:6px;border:1px solid var(--bd)}
+.mstv{font-family:var(--mono);font-size:.82rem;font-weight:700;display:block;margin-bottom:1px}
+.mstl{font-size:.54rem;color:var(--txd)}
+
+/* ── SCROLLBAR ────────────────────────────────────────── */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP MODAL ══ -->
+<div class="overlay" id="setup-overlay">
+<div class="modal">
+  <div class="m-title"><span>//</span>NEXUS System Configuration</div>
+
+  <div class="fg">
+    <div><label class="fl">Home Name</label><input class="fi" id="cfg-name" value="My Home" placeholder="e.g. My Apartment"></div>
+    <div><label class="fl">City / Region</label><input class="fi" id="cfg-city" value="Ghaziabad, UP" placeholder="e.g. Delhi NCR"></div>
+  </div>
+
+  <div class="m-section">Electricity Tariff</div>
+  <div class="rate-grid">
+    <div class="rate-item">
+      <span class="rate-label">Peak Rate (6 AM – 10 PM)</span>
+      <div class="rate-row"><input class="ri" id="r-peak" type="number" step="0.5" min="0" value="8.50"><span class="ru">Rs / kWh</span></div>
+    </div>
+    <div class="rate-item">
+      <span class="rate-label">Off-Peak Rate (10 PM – 6 AM)</span>
+      <div class="rate-row"><input class="ri" id="r-offpeak" type="number" step="0.5" min="0" value="5.00"><span class="ru">Rs / kWh</span></div>
+    </div>
+    <div class="rate-item">
+      <span class="rate-label">Sanctioned Load Limit</span>
+      <div class="rate-row"><input class="ri" id="r-limit" type="number" step="500" min="500" value="3000"><span class="ru">Watts</span></div>
+    </div>
+    <div class="rate-item">
+      <span class="rate-label">Fixed Monthly Charges</span>
+      <div class="rate-row"><input class="ri" id="r-fixed" type="number" step="10" min="0" value="150"><span class="ru">Rs / month</span></div>
+    </div>
+  </div>
+
+  <div class="m-section">Device Inventory — How Many Do You Have?</div>
+  <div class="dev-list" id="setup-dev-list"></div>
+
+  <button class="btn-launch" onclick="saveConfig()">⚡ Save &amp; Launch NEXUS</button>
+</div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="logo">
+    <div class="logo-ring"></div>
+    <span>NEXUS</span><span style="opacity:.3;font-size:.7rem">|</span><span style="font-size:.72rem;opacity:.6;letter-spacing:.12em">HOME AI</span>
+  </div>
+  <div class="hbar" id="hbar">
+    <div class="hs"><span class="hs-l">LOAD</span><span class="hs-v w" id="hs-load">0W</span></div>
+    <div class="hs"><span class="hs-l">COST/HR</span><span class="hs-v" id="hs-cost">Rs0.00</span></div>
+    <div class="hs"><span class="hs-l">TEMP</span><span class="hs-v" id="hs-temp">22°C</span></div>
+    <div class="hs"><span class="hs-l">SLEEP</span><span class="hs-v" id="hs-sleep">--</span></div>
+    <div class="hs"><span class="hs-l">MOOD</span><span class="hs-v p" id="hs-mood">neutral</span></div>
+    <div class="hs"><span class="hs-l">CO₂</span><span class="hs-v" id="hs-co2">450ppm</span></div>
+    <div class="hs"><span class="hs-l">TARIFF</span><span class="hs-v w" id="hs-tariff">PEAK</span></div>
+    <div class="hs"><span class="hs-l">DEVICES ON</span><span class="hs-v" id="hs-dev">0</span></div>
+  </div>
+  <div class="hright">
+    <span id="clock">--:--:--</span>
+    <span class="badge-sim">SIM</span>
+    <button class="hbtn prim" onclick="tickSim()">+5 min</button>
+    <button class="hbtn" onclick="openSetup()">⚙ Config</button>
+    <button class="hbtn" onclick="doReset()">↺ Reset</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sidebar">
+
+  <div class="card">
+    <div class="ct">
+      <div class="ct-l">Room Conditions</div>
+      <span class="ct-r" id="occ-b" style="padding:2px 7px;border-radius:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.22);color:var(--ac3);font-family:var(--mono);font-size:.55rem">OCCUPIED</span>
+    </div>
+    <div class="met-list" id="met-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="ct">
+      <div class="ct-l">Emotional State</div>
+      <span class="ct-r" id="mood-conf" style="color:var(--txd);font-family:var(--mono);font-size:.56rem">awaiting input</span>
+    </div>
+    <div class="mood-wrap">
+      <span class="mood-em" id="mood-em">😐</span>
+      <div class="mood-nm" id="mood-nm">NEUTRAL</div>
+      <div class="mood-sc" id="mood-sc">60<sub>/100</sub></div>
+      <div class="mood-bw"><div class="mood-bf" id="mood-bf" style="width:60%"></div></div>
+      <div class="mood-tag" id="mood-tag">Standard comfortable environment</div>
+    </div>
+    <div class="mood-in-row">
+      <input class="minp" id="mood-in" placeholder="How are you feeling right now?" onkeydown="if(event.key==='Enter')doMood()">
+      <button class="mbtn" onclick="doMood()">→</button>
+    </div>
+    <div class="mood-ci" id="mood-ci">Type how you feel — AI detects &amp; adapts environment</div>
+  </div>
+
+  <div class="card">
+    <div class="ct"><div class="ct-l">Active Users</div></div>
+    <div id="users-list"></div>
+    <button class="harm-btn" onclick="harmonize()">⚖ Harmonize Preferences</button>
+    <div class="harm-res" id="harm-res"></div>
+  </div>
+
+  <div class="card">
+    <div class="ct">
+      <div class="ct-l">System Alerts</div>
+      <span class="ct-r" id="al-cnt" style="font-family:var(--mono);font-size:.6rem;color:var(--txd)"></span>
+    </div>
+    <div id="al-list"><div class="no-al">// All systems nominal</div></div>
+  </div>
+
+</div>
+
+<!-- ══ CONTENT ══ -->
+<div class="content">
+
+  <div class="row2">
+
+    <!-- Energy Card -->
+    <div class="card">
+      <div class="ct">
+        <div class="ct-l">Energy Intelligence</div>
+        <span class="ct-r" id="tariff-badge" style="font-family:var(--mono);font-size:.57rem;color:var(--warn)">PEAK — Rs8.50/kWh</span>
+      </div>
+      <div class="eg">
+        <div class="es"><span class="esv" id="e-kwh">0.000</span><span class="esl">kWh Now</span></div>
+        <div class="es"><span class="esv" id="e-today">Rs0</span><span class="esl">Today Est.</span></div>
+        <div class="es"><span class="esv" id="e-month">Rs0</span><span class="esl">Month Est.</span></div>
+        <div class="es"><span class="esv" id="e-co2">0.0kg</span><span class="esl">CO₂ Today</span></div>
+      </div>
+      <div class="chart-wrap"><canvas id="eChart"></canvas></div>
+      <div style="display:flex;gap:5px;margin-top:.6rem">
+        <button class="qb" style="flex:1;padding:6px" onclick="refreshEnergy()">⚡ Refresh</button>
+        <button class="qb" style="flex:1;padding:6px" onclick="toggleBill()">🧾 Bill Breakdown</button>
+      </div>
+      <div id="bill-panel" class="bill-panel" style="display:none">
+        <div class="ct" style="margin-bottom:.5rem"><div class="ct-l">Monthly Bill Estimate</div></div>
+        <div class="bill-grid" id="bill-grid"></div>
+        <div class="bill-break" id="bill-break"></div>
+        <div class="bill-tip" id="bill-tip"></div>
+      </div>
+    </div>
+
+    <!-- Sleep Card -->
+    <div class="card">
+      <div class="ct">
+        <div class="ct-l">Sleep &amp; Comfort Score</div>
+        <span class="ct-r" id="sl-time-lbl" style="font-family:var(--mono);font-size:.56rem;color:var(--txd)"></span>
+      </div>
+      <div class="sltop">
+        <div class="ring">
+          <svg width="74" height="74" viewBox="0 0 74 74" style="transform:rotate(-90deg)">
+            <circle cx="37" cy="37" r="31" fill="none" stroke="var(--bd)" stroke-width="6"/>
+            <circle id="sl-arc" cx="37" cy="37" r="31" fill="none" stroke="var(--ac)" stroke-width="6" stroke-linecap="round" stroke-dasharray="194.8" stroke-dashoffset="77.9" style="transition:all .9s ease"/>
+          </svg>
+          <div class="ring-txt">
+            <span class="ring-sc" id="sl-score">60</span>
+            <span class="ring-lb">score</span>
+          </div>
+        </div>
+        <div class="sl-det">
+          <div class="sg" id="sl-grade">Fair</div>
+          <div class="sd" id="sl-desc">Conditions can be improved for better rest</div>
+        </div>
+      </div>
+      <div class="sl-conds">
+        <div class="sl-c"><span class="sl-cv" id="sc-t" style="color:var(--warn)">22°C</span><span class="sl-cl">Temp (16–19°C)</span></div>
+        <div class="sl-c"><span class="sl-cv" id="sc-n" style="color:var(--ac3)">35dB</span><span class="sl-cl">Noise (&lt;30dB)</span></div>
+        <div class="sl-c"><span class="sl-cv" id="sc-l" style="color:var(--warn)">70%</span><span class="sl-cl">Light (&lt;10%)</span></div>
+      </div>
+      <div class="chart-wrap-sm" style="margin-top:.6rem"><canvas id="sChart"></canvas></div>
+      <button class="qb" style="width:100%;margin-top:.55rem;padding:7px" onclick="optimizeSleep()">🌙 Auto-Optimize for Sleep</button>
+    </div>
+
+  </div>
+
+  <!-- Device Manager -->
+  <div class="card">
+    <div class="ct">
+      <div class="ct-l">Smart Device Manager</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="dev-tot-w" style="font-family:var(--mono);font-size:.63rem;color:var(--warn);font-weight:700">0W</span>
+        <span style="color:var(--txd);font-size:.6rem">|</span>
+        <span id="dev-tot-cost" style="font-family:var(--mono);font-size:.63rem;color:var(--ac3)">Rs0.00/hr</span>
+        <span style="color:var(--txd);font-size:.6rem">|</span>
+        <span id="dev-tot-on" style="font-family:var(--mono);font-size:.63rem;color:var(--ac)">0 devices on</span>
+      </div>
+    </div>
+
+    <div class="dev-sec">
+      <div class="dev-sec-hd">
+        <div class="dev-sec-hd-l">💡 Lights</div>
+        <span class="dev-sec-load" id="lights-load">0W active</span>
+      </div>
+      <div class="dev-grid" id="lights-grid"></div>
+    </div>
+
+    <div class="dev-sec">
+      <div class="dev-sec-hd">
+        <div class="dev-sec-hd-l">🌀 Fans &amp; Ventilation</div>
+        <span class="dev-sec-load" id="fans-load">0W active</span>
+      </div>
+      <div class="dev-grid" id="fans-grid"></div>
+    </div>
+
+    <div class="dev-sec">
+      <div class="dev-sec-hd">
+        <div class="dev-sec-hd-l">🏠 Other Appliances</div>
+        <span class="dev-sec-load" id="other-load">0W active</span>
+      </div>
+      <div class="dev-grid" id="other-grid"></div>
+    </div>
+
+    <!-- AI Power Advisor -->
+    <div class="adv-panel">
+      <div class="adv-hd">
+        <div class="adv-title">AI Power Advisor — Real-time Recommendations</div>
+        <button class="adv-analyze" onclick="runAdvisor()">Analyze Now</button>
+      </div>
+      <div class="pwrbar-hd">
+        <span style="color:var(--txd);font-family:var(--mono);font-size:.6rem">Active Load</span>
+        <span id="adv-load-txt" style="font-family:var(--mono);font-size:.63rem;color:var(--warn);font-weight:700">0W / 3000W limit</span>
+      </div>
+      <div class="pwrbar-bg"><div class="pwrbar-fill" id="adv-bar" style="width:0%;background:linear-gradient(90deg,#10b981,#f59e0b,#ef4444)"></div></div>
+      <div class="pwrbar-zones"><span>0W</span><span style="color:var(--ac3)">Safe &lt;50%</span><span style="color:var(--warn)">Caution 75%</span><span style="color:var(--err)">Danger 100%</span></div>
+      <div id="adv-body"><div class="adv-ok">Click "Analyze Now" to get smart ON/OFF recommendations based on time, mood, and usage</div></div>
+      <div class="adv-footer" id="adv-foot" style="display:none">
+        <div class="afs"><span class="afsv" id="af-on" style="color:var(--ac3)">0</span><span class="afsl">Devices ON</span></div>
+        <div class="afs"><span class="afsv" id="af-w" style="color:var(--warn)">0W</span><span class="afsl">Total Load</span></div>
+        <div class="afs"><span class="afsv" id="af-day" style="color:var(--ac)">Rs0</span><span class="afsl">Daily Cost</span></div>
+        <div class="afs"><span class="afsv" id="af-save" style="color:var(--ac3)">Rs0</span><span class="afsl">Possible Save</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row2">
+
+    <!-- Voice -->
+    <div class="card">
+      <div class="ct">
+        <div class="ct-l">Voice Assistant</div>
+        <span class="ct-r" style="font-family:var(--mono);font-size:.55rem;color:var(--ac3)">OFFLINE • DEMO MODE</span>
+      </div>
+      <div class="vrow">
+        <input class="vinp" id="vcmd" placeholder="sleep mode · turn on AC · I feel stressed · energy report" onkeydown="if(event.key==='Enter')sendCmd()">
+        <button class="vsend" onclick="sendCmd()">Send</button>
+      </div>
+      <div class="vresp" id="vresp"></div>
+      <div class="qbtns">
+        <button class="qb" onclick="qcmd('sleep mode')">🌙 Sleep</button>
+        <button class="qb" onclick="qcmd('good morning')">☀ Morning</button>
+        <button class="qb" onclick="qcmd('turn on the lights')">💡 Lights On</button>
+        <button class="qb" onclick="qcmd('turn off the lights')">🌑 Lights Off</button>
+        <button class="qb" onclick="qcmd('turn on the AC')">❄ AC On</button>
+        <button class="qb" onclick="qcmd('turn off the AC')">❄ AC Off</button>
+        <button class="qb" onclick="qcmd('turn on fan')">🌀 Fan On</button>
+        <button class="qb" onclick="qcmd('energy report')">⚡ Energy</button>
+        <button class="qb" onclick="qcmd('bill')">🧾 Bill</button>
+        <button class="qb" onclick="qcmd('how am i doing')">📊 Status</button>
+        <button class="qb qb-mood" onclick="qcmd('I feel stressed')">😰 Stressed</button>
+        <button class="qb qb-mood" onclick="qcmd('I feel happy')">😊 Happy</button>
+        <button class="qb qb-mood" onclick="qcmd('I feel tired')">😴 Tired</button>
+        <button class="qb qb-mood" onclick="qcmd('I feel focused')">🎯 Focus</button>
+        <button class="qb" onclick="qcmd('set temperature to 20')">🌡 Set 20°C</button>
+      </div>
+    </div>
+
+    <!-- Mood Timeline -->
+    <div class="card">
+      <div class="ct"><div class="ct-l">Wellness Timeline</div></div>
+      <div class="chart-wrap-sm" style="height:128px"><canvas id="mChart"></canvas></div>
+      <div class="mood-st-row">
+        <div class="mst"><span class="mstv" id="mt-avg" style="color:var(--ac3)">--</span><span class="mstl">Avg Score</span></div>
+        <div class="mst"><span class="mstv" id="mt-best" style="color:var(--ac)">--</span><span class="mstl">Best</span></div>
+        <div class="mst"><span class="mstv" id="mt-worst" style="color:var(--err)">--</span><span class="mstl">Lowest</span></div>
+        <div class="mst"><span class="mstv" id="mt-trend" style="color:var(--warn)">—</span><span class="mstl">Trend</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row2">
+
+    <!-- Memory -->
+    <div class="card">
+      <div class="ct"><div class="ct-l">Adaptive Memory &amp; Learning</div></div>
+      <div class="mem-g">
+        <div class="ms"><span class="msv" id="mem-p">0</span><span class="msl">Prefs Logged</span></div>
+        <div class="ms"><span class="msv" id="mem-d">7</span><span class="msl">Learning Days</span></div>
+        <div class="ms"><span class="msv" id="mem-u">2</span><span class="msl">Users Tracked</span></div>
+        <div class="ms"><span class="msv" style="color:var(--ac3)" id="mem-a">+23%</span><span class="msl">Accuracy</span></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:.54rem;letter-spacing:.1em;color:var(--txd);margin-bottom:.4rem;text-transform:uppercase">// Learned Patterns</div>
+      <div class="pat-list" id="pat-list">
+        <div class="pat-item">Morning 6–9AM → Bright lights + cool temp (21°C)</div>
+        <div class="pat-item">Evening 7–10PM → Warm lights + Fan medium</div>
+        <div class="pat-item">Night 10PM+ → Dim lights + AC 18°C or Fan low</div>
+        <div class="pat-item">Stressed mood → Calm protocol (soft light + white noise)</div>
+        <div class="pat-item">Focus mode → Bright cool light + no TV</div>
+      </div>
+    </div>
+
+    <!-- AI Recs -->
+    <div class="card">
+      <div class="ct"><div class="ct-l">AI Recommendations</div><span class="ct-r" id="recs-ts" style="color:var(--txd);font-family:var(--mono);font-size:.55rem"></span></div>
+      <div class="recs-list" id="recs-list"><div class="rec"><span class="rec-icon">✦</span><span>Analyzing environment patterns...</span></div></div>
+    </div>
+
+  </div>
+
+</div>
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  NEXUS Intelligence Engine v3.0
+// ═══════════════════════════════════════════════════════
+const API = '';
+let CFG = { name:'My Home', city:'Ghaziabad', peak:8.50, offpeak:5.00, fixed:150, limit:3000 };
+
+// ── DEVICE CATALOG ────────────────────────────────────
+const CAT = [
+  {id:'l5',  cat:'L', icon:'💡', name:'Bulb 5W',      watts:5,   room:'Bedside',  dq:2},
+  {id:'l9',  cat:'L', icon:'💡', name:'Bulb 9W',      watts:9,   room:'Room',     dq:3},
+  {id:'l18', cat:'L', icon:'🔦', name:'Tube 18W',     watts:18,  room:'Hall',     dq:2},
+  {id:'l36', cat:'L', icon:'🔦', name:'Tube 36W',     watts:36,  room:'Kitchen',  dq:1},
+  {id:'fl',  cat:'F', icon:'🌀', name:'Fan Low',       watts:30,  room:'Bedroom',  dq:1},
+  {id:'fm',  cat:'F', icon:'🌀', name:'Fan Medium',    watts:55,  room:'Living',   dq:1},
+  {id:'fh',  cat:'F', icon:'🌀', name:'Fan High',      watts:75,  room:'Hall',     dq:1},
+  {id:'ac',  cat:'O', icon:'❄️', name:'AC (1.5T)',     watts:1500,room:'Bedroom',  dq:1},
+  {id:'ht',  cat:'O', icon:'🔥', name:'Heater',       watts:1000,room:'Room',     dq:1},
+  {id:'wh',  cat:'O', icon:'🚿', name:'Geyser',       watts:2000,room:'Bath',     dq:1},
+  {id:'tv',  cat:'O', icon:'📺', name:'TV 40"',        watts:80,  room:'Living',   dq:1},
+  {id:'rf',  cat:'O', icon:'🧊', name:'Refrigerator', watts:150, room:'Kitchen',  dq:1},
+  {id:'wm',  cat:'O', icon:'🫧', name:'Washing M.',   watts:500, room:'Service',  dq:1},
+  {id:'wn',  cat:'O', icon:'🔊', name:'White Noise',  watts:5,   room:'Bedroom',  dq:1},
+  {id:'mu',  cat:'O', icon:'🎵', name:'Music System', watts:30,  room:'Living',   dq:1},
+];
+
+let Q={}, ON={}, moodHist=[], sleepHist=[], prefCnt=0, curMood='neutral';
+let users=[], userOn={};
+let sim={temperature:22,humidity:55,noise_level:35,light_level:70,co2_level:450};
+let eChart,sChart,mChart;
+
+// ── MOOD ENGINE ───────────────────────────────────────
+const MOODS = {
+  happy:   {em:'😊',sc:88,tag:'Energetic environment — bright lights & cool air',adj:{light:85,temp:22}},
+  relaxed: {em:'😌',sc:80,tag:'Calm & comfortable — soft lights, gentle air',adj:{light:55,temp:21}},
+  focused: {em:'🎯',sc:75,tag:'Focus mode — bright cool light, no distractions',adj:{light:100,temp:20}},
+  neutral: {em:'😐',sc:60,tag:'Standard comfortable environment',adj:{light:70,temp:21}},
+  stressed:{em:'😰',sc:32,tag:'Calm protocol — soft light, cool air, white noise',adj:{light:40,temp:20}},
+  tired:   {em:'😴',sc:38,tag:'Pre-sleep — lights dimming, home quieting down',adj:{light:20,temp:18}},
+  sad:     {em:'😢',sc:28,tag:'Comfort mode — warm light, cozy temperature',adj:{light:60,temp:22}},
+  angry:   {em:'😠',sc:22,tag:'De-escalation — cool, calm, low-stimulus environment',adj:{light:35,temp:19}},
+};
+const KW = {
+  stressed:['stress','anxi','overwhelm','worri','nerv','tense','panic','pressure','upset','agit'],
+  tired:   ['tired','exhaust','sleep','fatigue','drain','weary','drows','yawn','groggy'],
+  happy:   ['happy','great','wonder','excit','joy','fantas','amazing','good','love','cheerful','elat'],
+  sad:     ['sad','depress','unhappy','miser','down','blue','gloom','cry','lonely','hopeless'],
+  focused: ['focus','work','concentrat','study','product','busy','deadline','task','code'],
+  relaxed: ['relax','calm','peaceful','chill','comfort','serene','rest','unwind','easy'],
+  angry:   ['angry','frustrat','mad','furio','irritat','annoy','rage','furious'],
+};
+
+function detectMood(t) {
+  t = t.toLowerCase();
+  for (const [m,kws] of Object.entries(KW)) if (kws.some(k => t.includes(k))) return m;
+  if (['good','great','love','fine','okay','ok','not bad'].some(w => t.includes(w))) return 'happy';
+  if (['bad','hate','awful','terr','horrible'].some(w => t.includes(w))) return 'sad';
+  return 'neutral';
+}
+
+function doMood() {
+  const txt = document.getElementById('mood-in').value.trim();
+  if (!txt) return;
+  const m = detectMood(txt), md = MOODS[m];
+  curMood = m;
+  document.getElementById('mood-em').textContent = md.em;
+  document.getElementById('mood-nm').textContent = m.toUpperCase();
+  document.getElementById('mood-sc').innerHTML = md.sc + '<sub>/100</sub>';
+  document.getElementById('mood-bf').style.width = md.sc + '%';
+  document.getElementById('mood-tag').textContent = md.tag;
+  document.getElementById('mood-conf').textContent = 'detected: ' + m + ' · high confidence';
+  document.getElementById('hs-mood').textContent = m;
+  sim.light_level = md.adj.light;
+  sim.temperature = md.adj.temp;
+  moodHist.push(md.sc);
+  if (moodHist.length > 20) moodHist.shift();
+  updateMoodChart(); updateMoodStats();
+  document.getElementById('mood-in').value = '';
+  showResp('Mood detected: ' + m + ' ' + md.em + ' — ' + md.tag);
+  prefCnt++; updateMemory(); updateRecs(); runAdvisor(); updateAll();
+}
+
+// ── SETUP ─────────────────────────────────────────────
+function buildSetupList() {
+  document.getElementById('setup-dev-list').innerHTML = CAT.map(d =>
+    '<div class="drow">' +
+    '<div class="dic">' + d.icon + '</div>' +
+    '<div class="dinfo"><div class="dname">' + d.name + '</div>' +
+    '<div class="dsub">' + d.watts + 'W · ' + d.room + '</div></div>' +
+    '<div class="qc">' +
+    '<button class="qb" onclick="adjQ(\'' + d.id + '\',-1)">−</button>' +
+    '<div class="qv" id="qv-' + d.id + '">' + (Q[d.id] !== undefined ? Q[d.id] : d.dq) + '</div>' +
+    '<button class="qb" onclick="adjQ(\'' + d.id + '\',1)">+</button>' +
+    '</div></div>'
+  ).join('');
+}
+
+function adjQ(id, d) {
+  const el = document.getElementById('qv-' + id);
+  if (el) el.textContent = Math.max(0, (parseInt(el.textContent) || 0) + d);
+}
+
+function saveConfig() {
+  CFG.name    = document.getElementById('cfg-name').value || 'My Home';
+  CFG.city    = document.getElementById('cfg-city').value || 'Ghaziabad';
+  CFG.peak    = parseFloat(document.getElementById('r-peak').value)    || 8.50;
+  CFG.offpeak = parseFloat(document.getElementById('r-offpeak').value) || 5.00;
+  CFG.fixed   = parseFloat(document.getElementById('r-fixed').value)   || 150;
+  CFG.limit   = parseFloat(document.getElementById('r-limit').value)   || 3000;
+  CAT.forEach(d => {
+    const el = document.getElementById('qv-' + d.id);
+    Q[d.id] = el ? (parseInt(el.textContent) || 0) : d.dq;
+  });
+  document.getElementById('setup-overlay').style.display = 'none';
+  renderDevices(); updateAll(); runAdvisor();
+}
+
+function openSetup() {
+  buildSetupList();
+  document.getElementById('setup-overlay').style.display = 'flex';
+}
+
+// ── RATES ─────────────────────────────────────────────
+function getRate() {
+  const h = new Date().getHours();
+  return (h >= 6 && h < 22) ? CFG.peak : CFG.offpeak;
+}
+function isPeak() {
+  const h = new Date().getHours(); return h >= 6 && h < 22;
+}
+
+// ── DEVICES ───────────────────────────────────────────
+function renderDevices() {
+  renderGrp('lights-grid', CAT.filter(d => d.cat === 'L'), 'lights-load');
+  renderGrp('fans-grid',   CAT.filter(d => d.cat === 'F'), 'fans-load');
+  renderGrp('other-grid',  CAT.filter(d => d.cat === 'O'), 'other-load');
+  updatePwr();
+}
+
+function renderGrp(gid, devs, loadId) {
+  const rate = getRate();
+  let w = 0;
+  const html = devs.map(d => {
+    const q    = Q[d.id] !== undefined ? Q[d.id] : d.dq;
+    const isOn = ON[d.id] || false;
+    const tw   = d.watts * q;
+    const cph  = ((tw / 1000) * rate).toFixed(2);
+    if (isOn) w += tw;
+    const cls  = 'dtile' + (q === 0 ? ' qty0' : '') + (isOn ? (tw > 800 ? ' on warn-on' : ' on') : '');
+    return '<div class="' + cls + '" id="dtile-' + d.id + '" onclick="togDev(\'' + d.id + '\')">' +
+      '<span class="dtile-ic">' + d.icon + '</span>' +
+      '<div class="dtile-nm">' + d.name + '</div>' +
+      '<div class="dtile-w">' + d.watts + 'W' + (q > 1 ? ' ×' + q : '') + '</div>' +
+      '<div class="dtile-r">' + d.room + '</div>' +
+      '<div class="dtile-st" id="dst-' + d.id + '">' + (isOn ? 'ON' : 'OFF') + '</div>' +
+      '<div class="dtile-cost" id="dcs-' + d.id + '">' + (isOn ? 'Rs' + cph + '/hr' : '') + '</div>' +
+      (q > 1 ? '<div class="dtile-qty-badge">' + q + '</div>' : '') +
+      '</div>';
+  }).join('');
+  document.getElementById(gid).innerHTML = html;
+  document.getElementById(loadId).textContent = w + 'W active';
+}
+
+function togDev(id) {
+  const d = CAT.find(x => x.id === id);
+  const q = Q[id] !== undefined ? Q[id] : d.dq;
+  if (q === 0) { showResp('No ' + d.name + ' configured — go to ⚙ Config to add devices.'); return; }
+  ON[id] = !ON[id];
+  // Smart conflicts
+  if (id === 'ac' && ON.ac)  { ON.ht = false; }
+  if (id === 'ht' && ON.ht)  { ON.ac = false; }
+  // Only one fan speed at a time
+  if (['fl','fm','fh'].includes(id) && ON[id]) ['fl','fm','fh'].filter(x=>x!==id).forEach(x=>ON[x]=false);
+  // Geyser warning
+  if (id === 'wh' && ON.wh) showResp('⚠ Geyser ON (2000W) — turn off after 15 mins!');
+  prefCnt++; updateMemory();
+  renderDevices(); updatePwr(); runAdvisor(); updateRecs(); updateEnergy();
+}
+
+function updatePwr() {
+  let total = 0, on_count = 0;
+  CAT.forEach(d => {
+    if (!ON[d.id]) return;
+    const q = Q[d.id] !== undefined ? Q[d.id] : d.dq;
+    total += d.watts * q; on_count++;
+  });
+  const cph = ((total / 1000) * getRate()).toFixed(2);
+  document.getElementById('dev-tot-w').textContent    = total + 'W';
+  document.getElementById('dev-tot-cost').textContent = 'Rs' + cph + '/hr';
+  document.getElementById('dev-tot-on').textContent   = on_count + ' device' + (on_count !== 1 ? 's' : '') + ' on';
+  document.getElementById('hs-load').textContent      = total + 'W';
+  document.getElementById('hs-cost').textContent      = 'Rs' + cph;
+  document.getElementById('hs-dev').textContent       = on_count;
+  const le = document.getElementById('hs-load');
+  le.className = 'hs-v' + (total > CFG.limit * .9 ? ' e' : total > CFG.limit * .6 ? ' w' : '');
+}
+
+// ── POWER ADVISOR ─────────────────────────────────────
+function runAdvisor() {
+  const rate = getRate(), h = new Date().getHours();
+  const isNight = h >= 22 || h < 6;
+  const isMorn  = h >= 6  && h < 9;
+  const isDay   = h >= 9  && h < 18;
+  const isEve   = h >= 18 && h < 22;
+
+  let totalW = 0;
+  const onList = [], offList = [];
+  CAT.forEach(d => {
+    const q = Q[d.id] !== undefined ? Q[d.id] : d.dq;
+    if (ON[d.id]) { totalW += d.watts * q; onList.push({...d, q}); }
+    else if (q > 0) offList.push({...d, q});
+  });
+
+  const pct = Math.min(100, (totalW / CFG.limit) * 100);
+  document.getElementById('adv-bar').style.width = pct + '%';
+  document.getElementById('adv-load-txt').textContent = totalW + 'W / ' + CFG.limit + 'W limit (' + Math.round(pct) + '%)';
+
+  const warns = [], offs = [], ons = [];
+
+  // Critical conflicts
+  if (ON.ac && ON.ht) warns.push({msg:'AC + Heater BOTH ON — massive energy waste!', act:'Turn off the Heater immediately'});
+  if (totalW > CFG.limit) warns.push({msg:'OVERLOAD: ' + totalW + 'W exceeds your ' + CFG.limit + 'W sanctioned limit!', act:'Turn off heavy appliances immediately to avoid disconnection'});
+  else if (totalW > CFG.limit * .8) warns.push({msg:'Load at ' + Math.round(pct) + '% of limit — approaching danger zone', act:'Consider turning off non-essential devices'});
+
+  // Night logic
+  if (isNight) {
+    if (ON.l36) offs.push({id:'l36', n:'Tube 36W (Kitchen)', r:'Bright tube light at night blocks melatonin production. Use bedside bulb instead.'});
+    if (ON.l18) offs.push({id:'l18', n:'Tube 18W (Hall)',    r:'Too bright for night. Soft dim light helps you fall asleep faster.'});
+    if (!ON.l5 && (Q.l5||0)>0)  ons.push({id:'l5', n:'Bulb 5W Bedside', r:'Low warm light is ideal for nighttime comfort and sleep preparation.'});
+    if (ON.fh)  offs.push({id:'fh', n:'Fan High (75W)', r:'High fan noise disrupts sleep cycles. Switch to Low speed for restful sleep.'});
+    if (!ON.fl && (Q.fl||0)>0)  ons.push({id:'fl', n:'Fan Low (30W)', r:'Gentle airflow at low speed improves sleep quality significantly.'});
+    if (ON.tv)  offs.push({id:'tv', n:'TV', r:'Blue screen light suppresses melatonin. Shut down 30 min before sleep.'});
+    if (ON.wh)  offs.push({id:'wh', n:'Geyser (2000W)', r:'Never leave geyser running overnight — fire hazard and 2kW waste.'});
+    if (ON.mu)  offs.push({id:'mu', n:'Music System', r:'Evening down-time. Turn off unless using as sleep aid.'});
+  }
+
+  // Morning logic
+  if (isMorn) {
+    if (!ON.l18 && !ON.l36 && (Q.l18||0)>0) ons.push({id:'l18', n:'Tube 18W', r:'Bright morning light boosts cortisol, improves alertness and mood for the day.'});
+    if (ON.l5)  offs.push({id:'l5', n:'Bulb 5W', r:'Too dim for morning routine — switch to a brighter light.'});
+    if (!ON.fm && (Q.fm||0)>0)  ons.push({id:'fm', n:'Fan Medium', r:'Good air circulation energizes your morning. Helps clear overnight CO₂ buildup.'});
+  }
+
+  // Daytime
+  if (isDay) {
+    if (ON.ac && !ON.fl && !ON.fm && (Q.fl||0)>0) ons.push({id:'fl', n:'Fan Low with AC', r:'Fan distributes AC air — lets you set AC 2°C warmer, saving ~10-15% energy.'});
+    if (ON.wn)  offs.push({id:'wn', n:'White Noise', r:'White noise is most useful at night. Saves 5W running unnecessarily all day.'});
+  }
+
+  // Evening
+  if (isEve) {
+    if (!ON.l9 && (Q.l9||0)>0)  ons.push({id:'l9', n:'Bulb 9W (Room)', r:'Warm room lighting for evening relaxation is easier on eyes than bright tubes.'});
+    if (ON.l36) offs.push({id:'l36', n:'Tube 36W', r:'Switch to warmer softer lights in the evening to help wind down.'});
+  }
+
+  // Mood-based
+  if (curMood === 'focused') {
+    if (!ON.l18 && !ON.l36 && (Q.l18||0)>0) ons.push({id:'l18', n:'Tube 18W', r:'Bright cool white light (5000K+) improves focus, alertness and reduces eye strain.'});
+    if (ON.tv) offs.push({id:'tv', n:'TV', r:'TV is a major distraction in focus mode. Turn off to maintain concentration.'});
+    if (ON.mu) offs.push({id:'mu', n:'Music System', r:'Consider silence or instrumental music — lyrics reduce cognitive performance.'});
+  }
+  if (curMood === 'stressed') {
+    if (ON.l36) offs.push({id:'l36', n:'Tube 36W', r:'Harsh bright light amplifies anxiety. Soft warm lighting is clinically calming.'});
+    if (!ON.wn && (Q.wn||0)>0) ons.push({id:'wn', n:'White Noise', r:'White noise reduces cortisol by 15-20% and masks stressful ambient sounds.'});
+  }
+  if (curMood === 'tired' && !isNight) {
+    if (!ON.fl && (Q.fl||0)>0) ons.push({id:'fl', n:'Fan Low', r:'Fresh air circulation helps combat daytime fatigue naturally.'});
+  }
+
+  // Always-on reminder
+  if (!ON.rf && (Q.rf||0)>0) ons.push({id:'rf', n:'Refrigerator', r:'Refrigerator must run 24/7 to prevent food spoilage and contamination.'});
+
+  // Geyser running reminder
+  if (ON.wh) offs.push({id:'wh', n:'Geyser (2000W)', r:'Highest-draw device. Water should be hot within 15 min. Turn off to save ~Rs' + ((2000/1000)*rate*0.25*30).toFixed(0) + '/month.'});
+
+  // Build HTML
+  let html = '';
+  warns.forEach(w => {
+    html += '<div class="adv-warn"><span style="font-size:1.1rem">⚠️</span><div><div class="adv-warn-msg">' + w.msg + '</div><div class="adv-warn-act">→ ' + w.act + '</div></div></div>';
+  });
+  if (offs.length) {
+    html += '<div class="adv-sh" style="color:var(--err)">🔴 TURN OFF</div>';
+    offs.forEach(r => {
+      html += '<div class="adv-item aoff" onclick="togDev(\'' + r.id + '\')" title="Click to turn off">' +
+        '<span style="font-size:.9rem;flex-shrink:0">🔴</span>' +
+        '<div><span class="adv-nm" style="color:#fca5a5">' + r.n + '</span><span class="adv-rs">' + r.r + '</span></div></div>';
+    });
+  }
+  if (ons.length) {
+    html += '<div class="adv-sh" style="color:var(--ac3)">🟢 TURN ON</div>';
+    ons.forEach(r => {
+      html += '<div class="adv-item aon" onclick="togDev(\'' + r.id + '\')" title="Click to turn on">' +
+        '<span style="font-size:.9rem;flex-shrink:0">🟢</span>' +
+        '<div><span class="adv-nm" style="color:#6ee7b7">' + r.n + '</span><span class="adv-rs">' + r.r + '</span></div></div>';
+    });
+  }
+  if (!warns.length && !offs.length && !ons.length) {
+    html = '<div class="adv-ok">✓ Appliance configuration is optimal for current time, mood, and conditions</div>';
+  }
+  document.getElementById('adv-body').innerHTML = html;
+
+  // Footer
+  const onCnt  = onList.length;
+  const dayEst = ((totalW / 1000) * rate * 14).toFixed(0);
+  const potSave = offs.reduce((a, r) => {
+    const d = CAT.find(x => x.id === r.id);
+    const q = Q[r.id] || 1;
+    return a + (d ? d.watts * q : 0);
+  }, 0);
+  const saving = ((potSave / 1000) * rate * 14).toFixed(0);
+  document.getElementById('adv-foot').style.display = 'grid';
+  document.getElementById('af-on').textContent   = onCnt;
+  document.getElementById('af-w').textContent    = totalW + 'W';
+  document.getElementById('af-day').textContent  = 'Rs' + dayEst;
+  document.getElementById('af-save').textContent = 'Rs' + saving;
+}
+
+// ── BILL ──────────────────────────────────────────────
+function toggleBill() {
+  const el = document.getElementById('bill-panel');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (el.style.display !== 'block') return;
+  let peakW = 0, offW = 0;
+  CAT.forEach(d => {
+    if (!ON[d.id]) return;
+    const q = Q[d.id] || 1, w = d.watts * q;
+    if      (d.id === 'rf') { peakW += w * 0.4; offW += w * 0.6; }
+    else if (d.id === 'ac') { peakW += w * 6; }
+    else if (d.id === 'wh') { peakW += w * 0.5; }
+    else                    { peakW += w * 8; offW += w * 2; }
+  });
+  const pu = (peakW / 1000 * 30).toFixed(1);
+  const ou = (offW  / 1000 * 30).toFixed(1);
+  const pc = (pu * CFG.peak).toFixed(0);
+  const oc = (ou * CFG.offpeak).toFixed(0);
+  const tu = (+pu + +ou).toFixed(1);
+  const total = (+pc + +oc + CFG.fixed).toFixed(0);
+  const save  = ((1.5 * CFG.peak * 30)).toFixed(0);
+  document.getElementById('bill-grid').innerHTML = [
+    {v:'Rs'+total, l:'Total Bill', c:'var(--err)'},
+    {v:tu+' kWh',  l:'Units Used', c:'var(--warn)'},
+    {v:'Rs'+CFG.fixed, l:'Fixed Charges', c:'var(--txd)'},
+  ].map(b => '<div class="bc"><span class="bcv" style="color:'+b.c+'">'+b.v+'</span><span class="bcl">'+b.l+'</span></div>').join('');
+  document.getElementById('bill-break').innerHTML =
+    'Peak hours: <span>' + pu + ' kWh × Rs' + CFG.peak + ' = Rs' + pc + '</span><br>' +
+    'Off-peak: <span>' + ou + ' kWh × Rs' + CFG.offpeak + ' = Rs' + oc + '</span><br>' +
+    'Fixed charges: <span>Rs' + CFG.fixed + '/month</span>';
+  document.getElementById('bill-tip').innerHTML =
+    '💡 Tip: Shifting AC usage to off-peak (10PM–6AM) could save ~Rs' + save + '/month';
+}
+
+// ── ENERGY ────────────────────────────────────────────
+function updateEnergy() {
+  const h = new Date().getHours(), pk = isPeak(), rate = getRate();
+  let totalW = 0;
+  CAT.forEach(d => { if (ON[d.id]) totalW += d.watts * (Q[d.id] !== undefined ? Q[d.id] : d.dq); });
+  const kwh   = (totalW / 1000).toFixed(3);
+  const today = ((totalW / 1000) * rate * 14).toFixed(0);
+  const month = ((totalW / 1000) * rate * 24 * 30 + CFG.fixed).toFixed(0);
+  const co2   = ((totalW / 1000) * 24 * 0.82).toFixed(1);
+  document.getElementById('e-kwh').textContent    = kwh;
+  document.getElementById('e-today').textContent  = 'Rs' + today;
+  document.getElementById('e-month').textContent  = 'Rs' + month;
+  document.getElementById('e-co2').textContent    = co2 + 'kg';
+  const tl = document.getElementById('tariff-badge');
+  tl.textContent = (pk ? 'PEAK' : 'OFF-PEAK') + ' — Rs' + rate + '/kWh';
+  tl.style.color = pk ? 'var(--warn)' : 'var(--ac3)';
+  document.getElementById('hs-tariff').textContent = pk ? 'PEAK' : 'OFF-PK';
+  document.getElementById('hs-tariff').className = 'hs-v' + (pk ? ' w' : '');
+}
+
+function refreshEnergy() {
+  updateEnergy();
+  fetch(API + '/api/energy/predict').then(r => r.json()).then(res => {
+    if (eChart && res.predictions) {
+      eChart.data.labels           = res.predictions.map(p => p.label);
+      eChart.data.datasets[0].data = res.predictions.map(p => p.kwh);
+      eChart.update();
+    }
+  }).catch(() => {});
+}
+
+// ── SLEEP ─────────────────────────────────────────────
+function calcSleep() {
+  const t = sim.temperature, n = sim.noise_level, l = sim.light_level;
+  const ts = t <= 19 ? 100 : Math.max(0, 100 - (t - 19) * 9);
+  const ns = n <= 30 ? 100 : Math.max(0, 100 - (n - 30) * 3.5);
+  const ls = l <= 10 ? 100 : Math.max(0, 100 - (l - 10) * 2.5);
+  return Math.round(ts * .4 + ns * .35 + ls * .25);
+}
+
+function updateSleep() {
+  const sc   = calcSleep();
+  const grade= sc>=90?'Excellent':sc>=75?'Good':sc>=60?'Fair':sc>=45?'Poor':'Very Poor';
+  const desc = sc>=75?'Great conditions for restful sleep':sc>=60?'Minor improvements would help':'Significant adjustments needed';
+  const col  = sc>=75?'var(--ac3)':sc>=55?'var(--ac)':'var(--err)';
+  document.getElementById('sl-score').textContent = sc;
+  document.getElementById('sl-grade').textContent = grade;
+  document.getElementById('sl-desc').textContent  = desc;
+  document.getElementById('hs-sleep').textContent = sc;
+  document.getElementById('hs-sleep').className   = 'hs-v' + (sc >= 75 ? '' : sc >= 55 ? ' w' : ' e');
+  const circ = 2 * Math.PI * 31;
+  const arc  = document.getElementById('sl-arc');
+  arc.style.strokeDashoffset = circ - (sc / 100) * circ;
+  arc.style.stroke = col;
+  const t = sim.temperature, n = sim.noise_level, l = sim.light_level;
+  document.getElementById('sc-t').textContent = t.toFixed(1) + '°C';
+  document.getElementById('sc-n').textContent = n.toFixed(0) + 'dB';
+  document.getElementById('sc-l').textContent = l.toFixed(0) + '%';
+  document.getElementById('sc-t').style.color = t<=19?'var(--ac3)':t<=23?'var(--warn)':'var(--err)';
+  document.getElementById('sc-n').style.color = n<=30?'var(--ac3)':n<=50?'var(--warn)':'var(--err)';
+  document.getElementById('sc-l').style.color = l<=10?'var(--ac3)':l<=40?'var(--warn)':'var(--err)';
+  const hh = new Date().getHours();
+  document.getElementById('sl-time-lbl').textContent = hh>=22||hh<6 ? '🌙 SLEEP TIME' : hh<9 ? '🌅 WAKE TIME' : '';
+  sleepHist.push(sc); if (sleepHist.length > 14) sleepHist.shift();
+  if (sChart) {
+    sChart.data.datasets[0].data = [...sleepHist];
+    sChart.data.datasets[0].backgroundColor = sleepHist.map(v => v>=75?'rgba(16,185,129,.65)':v>=55?'rgba(0,212,255,.45)':'rgba(239,68,68,.45)');
+    sChart.data.labels = sleepHist.map((_,i,a) => i===a.length-1?'Now':'');
+    sChart.update('none');
+  }
+}
+
+function optimizeSleep() {
+  sim.temperature = 18; sim.light_level = 8; sim.noise_level = 25;
+  ON.l36 = false; ON.l18 = false; ON.l5 = true; ON.fl = true; ON.fh = false; ON.fm = false;
+  renderDevices(); updatePwr(); runAdvisor(); updateAll();
+  showResp('🌙 Sleep mode active: 18°C · dim bedside light · fan low. Sleep score improving…');
+}
+
+// ── METRICS ───────────────────────────────────────────
+const METRICS = [
+  {k:'temperature', l:'Temperature',  u:'°C',  min:10,  max:40,   grad:'#7c3aed,#ef4444', ideal:[16,26]},
+  {k:'humidity',    l:'Humidity',     u:'%',   min:0,   max:100,  grad:'#7c3aed,#00d4ff', ideal:[40,60]},
+  {k:'noise_level', l:'Noise Level',  u:' dB', min:0,   max:100,  grad:'#10b981,#f59e0b', ideal:[0,50]},
+  {k:'light_level', l:'Light Level',  u:'%',   min:0,   max:100,  grad:'#f59e0b,#fef08a', ideal:[0,100]},
+  {k:'co2_level',   l:'CO₂',          u:' ppm',min:400, max:1500, grad:'#10b981,#ef4444', ideal:[400,800]},
+];
+
+function renderMetrics() {
+  document.getElementById('met-list').innerHTML = METRICS.map(m => {
+    const val  = sim[m.k] || 0;
+    const pct  = Math.min(100, Math.max(0, ((val - m.min) / (m.max - m.min)) * 100)).toFixed(1);
+    const ok   = val >= m.ideal[0] && val <= m.ideal[1];
+    const col  = ok ? 'var(--ac3)' : 'var(--warn)';
+    const disp = m.k === 'co2_level' ? Math.round(val) : (typeof val==='number'?val.toFixed(1):val);
+    return '<div class="met">' +
+      '<div class="met-hd"><span class="met-lbl">' + m.l + '</span>' +
+      '<span class="met-val" style="color:' + col + '">' + disp + m.u + '</span></div>' +
+      '<div class="met-trk"><div class="met-bar" style="width:' + pct + '%;background:linear-gradient(90deg,' + m.grad + ')"></div></div>' +
+      '<div class="met-ideal">Ideal: ' + m.ideal[0] + '–' + m.ideal[1] + m.u + '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('hs-temp').textContent = sim.temperature.toFixed(1) + '°C';
+  const co2 = sim.co2_level;
+  document.getElementById('hs-co2').textContent  = co2 + 'ppm';
+  document.getElementById('hs-co2').className    = 'hs-v' + (co2>1000?' e':co2>800?' w':'');
+}
+
+// ── USERS ─────────────────────────────────────────────
+function initUsers() {
+  users = [
+    {id:'user1', name:'Alice', mood:'neutral', score:60, active:true},
+    {id:'user2', name:'Bob',   mood:'neutral', score:60, active:false},
+  ];
+  users.forEach(u => { userOn[u.id] = u.active; });
+  renderUsers();
+}
+
+function renderUsers() {
+  document.getElementById('users-list').innerHTML = users.map(u => {
+    const a = userOn[u.id];
+    return '<div class="urow">' +
+      '<div class="uav">' + u.name[0] + '</div>' +
+      '<div class="uinfo"><div class="uname">' + u.name + '</div>' +
+      '<div class="umood">' + u.mood + ' · ' + u.score + '/100</div></div>' +
+      '<div class="utog' + (a?' on':'') + '" id="utog-'+u.id+'" onclick="togUser(\''+u.id+'\')"></div>' +
+    '</div>';
+  }).join('');
+}
+
+function togUser(uid) {
+  userOn[uid] = !userOn[uid];
+  const t = document.getElementById('utog-' + uid);
+  if (t) t.classList.toggle('on', userOn[uid]);
+}
+
+function harmonize() {
+  const el = document.getElementById('harm-res');
+  el.style.display = 'block';
+  const active = users.filter(u => userOn[u.id]);
+  if (!active.length) {
+    el.style.cssText = 'display:block;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.22);border-radius:5px;padding:8px 10px;color:var(--warn)';
+    el.textContent = '⚠ No active users — toggle at least one ON first'; return;
+  }
+  if (active.length === 1) {
+    el.style.cssText = 'display:block;background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.18);border-radius:5px;padding:8px 10px;color:var(--ac)';
+    el.textContent = '→ Single user (' + active[0].name + ') — preferences applied individually'; return;
+  }
+  let tw2 = 0; const w = {};
+  active.forEach(u => { const wt = Math.max(.5, (100 - (u.score||60)) / 100); w[u.id] = wt; tw2 += wt; });
+  const tP = {user1:21, user2:20}, lP = {user1:70, user2:60};
+  let t2 = 0, l2 = 0;
+  active.forEach(u => { const wn = w[u.id]/tw2; t2 += (tP[u.id]||21)*wn; l2 += (lP[u.id]||65)*wn; });
+  el.style.cssText = 'display:block;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.18);border-radius:5px;padding:8px 10px;color:var(--ac3);line-height:1.6;font-size:.66rem;font-family:var(--mono)';
+  el.innerHTML = '✓ Consensus for ' + active.length + ' users<br>→ Temp: <b>' + t2.toFixed(1) + '°C</b> · Light: <b>' + Math.round(l2) + '%</b><br><span style="color:var(--txd);font-size:.6rem">Distressed users weighted higher in consensus calculation</span>';
+}
+
+// ── ALERTS ────────────────────────────────────────────
+function updateAlerts() {
+  const als = [];
+  if (sim.temperature > 28) als.push({type:'warning', msg:'High room temperature (' + sim.temperature.toFixed(1) + '°C)', act:'Enable AC'});
+  if (sim.co2_level > 1000) als.push({type:'danger',  msg:'CO₂ critically high (' + sim.co2_level + 'ppm)', act:'Open windows immediately'});
+  else if (sim.co2_level > 800) als.push({type:'warning', msg:'CO₂ elevated (' + sim.co2_level + 'ppm)', act:'Ventilate room'});
+  let tw3 = 0; CAT.forEach(d => { if (ON[d.id]) tw3 += d.watts*(Q[d.id]||d.dq); });
+  if (tw3 > CFG.limit)     als.push({type:'danger',  msg:'Overload: ' + tw3 + 'W > ' + CFG.limit + 'W', act:'Turn off heavy appliances'});
+  if (ON.ac && ON.ht)      als.push({type:'warning', msg:'AC + Heater both ON', act:'Turn off one immediately'});
+  if (ON.wh)               als.push({type:'info',    msg:'Geyser running (2000W)', act:'Turn off when water is hot'});
+  if (sim.noise_level > 65) als.push({type:'info',   msg:'High noise detected (' + sim.noise_level.toFixed(0) + 'dB)', act:''});
+  document.getElementById('al-cnt').textContent = als.length || '';
+  document.getElementById('al-list').innerHTML  = als.length
+    ? als.map(a => '<div class="al ' + a.type + '">' + (a.type==='danger'?'🔴':a.type==='warning'?'⚠':'ℹ') + ' ' + a.msg + (a.act?' <span style="opacity:.6;font-size:.63rem">→ '+a.act+'</span>':'') + '</div>').join('')
+    : '<div class="no-al">// All systems nominal</div>';
+}
+
+// ── RECS ──────────────────────────────────────────────
+function updateRecs() {
+  const recs = [];
+  const sl = calcSleep(), h = new Date().getHours(), isN = h>=22||h<6;
+  if (sim.temperature > 26) recs.push('Room temp high (' + sim.temperature.toFixed(1) + '°C) — enable AC or open windows for comfort');
+  if (sim.co2_level > 800)  recs.push('CO₂ at ' + sim.co2_level + 'ppm — ventilate room, reduces fatigue and improves focus');
+  if (sl < 60)              recs.push('Sleep score ' + sl + '/100 — target 18°C, dim lights, and low fan for better rest');
+  if (curMood === 'stressed') recs.push('Stress detected — calm protocol activated (soft light + cool air + white noise)');
+  if (curMood === 'tired' && !isN) recs.push('Fatigue at ' + h + ':00 — short rest or power nap may help recovery');
+  if (curMood === 'focused') recs.push('Focus mode — maintaining bright cool lighting for optimal cognitive performance');
+  if (ON.ac && ON.ht)       recs.push('⚠ Conflict: AC + Heater both running — massive energy waste, turn off one');
+  if (isN && sim.light_level > 30) recs.push('Nighttime: dimming lights now to support natural melatonin production');
+  if (!recs.length) recs.push('All parameters optimal — environment is well-configured ✓');
+  document.getElementById('recs-list').innerHTML = recs.slice(0,5).map(r =>
+    '<div class="rec"><span class="rec-icon">✦</span><span>' + r + '</span></div>'
+  ).join('');
+  document.getElementById('recs-ts').textContent = 'updated ' + new Date().toLocaleTimeString('en-IN', {hour12:false,hour:'2-digit',minute:'2-digit'});
+}
+
+// ── MEMORY ────────────────────────────────────────────
+function updateMemory() {
+  document.getElementById('mem-p').textContent = prefCnt;
+  document.getElementById('mem-u').textContent = users.length;
+}
+
+// ── MOOD CHART ────────────────────────────────────────
+function updateMoodChart() {
+  if (!mChart || !moodHist.length) return;
+  mChart.data.labels           = moodHist.map((_,i) => i===moodHist.length-1?'Now':'');
+  mChart.data.datasets[0].data = [...moodHist];
+  mChart.update('none');
+}
+
+function updateMoodStats() {
+  if (!moodHist.length) return;
+  const avg   = Math.round(moodHist.reduce((a,b)=>a+b,0)/moodHist.length);
+  const best  = Math.max(...moodHist), worst = Math.min(...moodHist);
+  const n = moodHist.length;
+  const trend = n>1 ? (moodHist[n-1]>moodHist[n-2]?'↑':moodHist[n-1]<moodHist[n-2]?'↓':'→') : '→';
+  document.getElementById('mt-avg').textContent   = avg;
+  document.getElementById('mt-best').textContent  = best;
+  document.getElementById('mt-worst').textContent = worst;
+  document.getElementById('mt-trend').textContent = trend;
+  document.getElementById('mt-trend').style.color = trend==='↑'?'var(--ac3)':trend==='↓'?'var(--err)':'var(--warn)';
+}
+
+// ── VOICE ─────────────────────────────────────────────
+const VCMDS = [
+  [/turn (on|off) (?:the )?lights?/i,     m=>{const o=m[1].toLowerCase()==='on';CAT.filter(d=>d.cat==='L').forEach(d=>{if((Q[d.id]||0)>0)ON[d.id]=o;});renderDevices();runAdvisor();return'Lights turned '+m[1].toLowerCase()+'.'}],
+  [/set (?:temp|temperature) to (\d+)/i,  m=>{sim.temperature=+m[1];updateAll();return'Temperature target set to '+m[1]+'°C.'}],
+  [/sleep mode|good night|bedtime/i,       _=>{optimizeSleep();return'Sleep mode activated.'}],
+  [/(?:good )?morning|wake up|morning mode/i,_=>{sim.temperature=22;sim.light_level=90;ON.l18=true;ON.fm=true;ON.l5=false;renderDevices();runAdvisor();updateAll();return'Morning mode! Bright lights, fresh air.'}],
+  [/turn (on|off) (?:the )?fan/i,         m=>{const o=m[1].toLowerCase()==='on';ON.fl=o;renderDevices();runAdvisor();return'Fan turned '+m[1].toLowerCase()+'.'}],
+  [/turn (on|off) (?:the )?ac/i,          m=>{const o=m[1].toLowerCase()==='on';ON.ac=o;if(o)ON.ht=false;renderDevices();runAdvisor();return'AC turned '+m[1].toLowerCase()+'.'}],
+  [/turn (on|off) (?:the )?tv/i,          m=>{ON.tv=m[1].toLowerCase()==='on';renderDevices();return'TV turned '+m[1].toLowerCase()+'.'}],
+  [/energy report|bill|how much/i,         _=>{const tw=CAT.filter(d=>ON[d.id]).reduce((a,d)=>a+d.watts*(Q[d.id]||1),0);toggleBill();return'Load: '+tw+'W. Daily: Rs'+((tw/1000)*getRate()*14).toFixed(0)+'. Monthly est: Rs'+((tw/1000)*getRate()*24*30+CFG.fixed).toFixed(0)+'.'}],
+  [/how am i doing|status/i,              _=>'Temp: '+sim.temperature.toFixed(1)+'°C | CO₂: '+sim.co2_level+'ppm | Sleep: '+calcSleep()+'/100 | Mood: '+curMood+' | Load: '+CAT.filter(d=>ON[d.id]).reduce((a,d)=>a+d.watts*(Q[d.id]||1),0)+'W'],
+  [/focus mode/i,                          _=>{curMood='focused';ON.l18=true;ON.tv=false;sim.temperature=20;renderDevices();runAdvisor();updateAll();return'🎯 Focus mode: bright lights, cool air, TV off.'}],
+  [/(?:i feel|i am|i'm|i'm) (.+)/i,      m=>{document.getElementById('mood-in').value=m[1];doMood();return''}],
+];
+
+function sendCmd() {
+  const cmd = document.getElementById('vcmd').value.trim();
+  if (!cmd) return;
+  document.getElementById('vcmd').value = '';
+  const cl = cmd.toLowerCase();
+  for (const [pat, fn] of VCMDS) {
+    const m = cl.match(pat);
+    if (m) { const r = fn(m); if (r) showResp(r); prefCnt++; updateMemory(); updateRecs(); return; }
+  }
+  showResp('Unrecognized. Try: "sleep mode" · "energy report" · "I feel stressed" · "turn on the AC"');
+}
+
+function qcmd(c) { document.getElementById('vcmd').value = c; sendCmd(); }
+
+let _rt;
+function showResp(txt) {
+  if (!txt) return;
+  const el = document.getElementById('vresp');
+  el.textContent = '⟩ ' + txt; el.style.display = 'block';
+  clearTimeout(_rt); _rt = setTimeout(() => el.style.display = 'none', 9000);
+}
+
+// ── SIMULATION ────────────────────────────────────────
+function tickSim() {
+  const amb = 24 + 3 * Math.sin(Date.now() / 80000);
+  sim.temperature  = +(sim.temperature + (amb - sim.temperature) * .06 + (Math.random()-.5)*.3).toFixed(1);
+  sim.humidity     = Math.min(80, Math.max(35, sim.humidity + (Math.random()-.5)));
+  sim.noise_level  = +(30 + Math.random()*20).toFixed(1);
+  sim.co2_level    = Math.min(1500, sim.co2_level + Math.floor(Math.random()*7) + 1);
+  updateAll();
+  showResp('Simulation advanced +5 minutes. Temp: ' + sim.temperature + '°C, CO₂: ' + sim.co2_level + 'ppm');
+}
+
+function doReset() {
+  sim = {temperature:22, humidity:55, noise_level:35, light_level:70, co2_level:450};
+  Object.keys(ON).forEach(k => ON[k] = false);
+  ON.rf = true; ON.l9 = true;
+  moodHist = []; sleepHist = []; curMood = 'neutral'; prefCnt = 0;
+  document.getElementById('mood-em').textContent = '😐';
+  document.getElementById('mood-nm').textContent = 'NEUTRAL';
+  document.getElementById('mood-sc').innerHTML   = '60<sub>/100</sub>';
+  document.getElementById('mood-bf').style.width = '60%';
+  document.getElementById('mood-tag').textContent = 'Standard comfortable environment';
+  document.getElementById('mood-conf').textContent = 'awaiting input';
+  document.getElementById('hs-mood').textContent = 'neutral';
+  renderDevices(); updateAll(); runAdvisor();
+}
+
+// ── CHARTS ────────────────────────────────────────────
+function initCharts() {
+  Chart.defaults.color       = '#3d5570';
+  Chart.defaults.borderColor = '#182238';
+  Chart.defaults.font.family = '"Space Mono",monospace';
+  Chart.defaults.font.size   = 9;
+  const hrs  = Array.from({length:24}, (_,i) => i.toString().padStart(2,'0')+':00');
+  const edat = hrs.map((_,i) => +(0.7 + Math.sin(i*.5)*.45 + Math.random()*.15).toFixed(2));
+  eChart = new Chart(document.getElementById('eChart').getContext('2d'), {
+    type:'line',
+    data:{labels:hrs, datasets:[{label:'kWh', data:edat,
+      borderColor:'#00d4ff', backgroundColor:'rgba(0,212,255,.07)',
+      fill:true, tension:.4, borderWidth:1.5, pointRadius:1.5, pointBackgroundColor:'#00d4ff'}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(10,14,24,.9)',borderColor:'#1e2e48',borderWidth:1}},
+      scales:{x:{grid:{color:'#182238'},ticks:{maxTicksLimit:8,color:'#3d5570'}},
+              y:{grid:{color:'#182238'},ticks:{color:'#3d5570'}}}}
+  });
+  sChart = new Chart(document.getElementById('sChart').getContext('2d'), {
+    type:'bar',
+    data:{labels:[], datasets:[{data:[], backgroundColor:[], borderRadius:4, borderSkipped:false}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(10,14,24,.9)',borderColor:'#1e2e48',borderWidth:1}},
+      scales:{x:{grid:{display:false},ticks:{color:'#3d5570'}}, y:{grid:{color:'#182238'}, min:0, max:100, ticks:{color:'#3d5570'}}}}
+  });
+  mChart = new Chart(document.getElementById('mChart').getContext('2d'), {
+    type:'line',
+    data:{labels:[], datasets:[{data:[],
+      borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.09)',
+      fill:true, tension:.45, borderWidth:2,
+      pointRadius:3, pointBackgroundColor:'#7c3aed', pointBorderColor:'rgba(10,14,24,.8)'}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(10,14,24,.9)',borderColor:'#1e2e48',borderWidth:1}},
+      scales:{x:{grid:{display:false},ticks:{color:'#3d5570'}},
+              y:{grid:{color:'#182238'}, min:0, max:100, ticks:{color:'#3d5570'},
+                 title:{display:true, text:'Wellness', color:'#3d5570', font:{size:8}}}}}
+  });
+}
+
+// ── MASTER UPDATE ─────────────────────────────────────
+function updateAll() {
+  renderMetrics(); updateSleep(); updateEnergy(); updateAlerts(); updateRecs(); updatePwr();
+  fetch(API + '/api/status').then(r=>r.json()).then(data=>{
+    if (!data.simulation) return;
+    const s = data.simulation;
+    sim.temperature = s.temperature; sim.humidity = s.humidity;
+    sim.noise_level = s.noise_level; sim.light_level = s.light_level; sim.co2_level = s.co2_level;
+    renderMetrics(); updateSleep(); updateAlerts();
+  }).catch(()=>{});
+}
+
+// ── BOOT ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  CAT.forEach(d => { Q[d.id] = d.dq; ON[d.id] = false; });
+  ON.rf = true; ON.l9 = true;  // defaults
+  buildSetupList(); initCharts(); initUsers(); renderDevices();
+  updateAll(); runAdvisor();
+  setInterval(updateAll, 8000);
+  setInterval(() => {
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-IN',{hour12:false});
+  }, 1000);
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-IN',{hour12:false});
+});
+</script>
+</body>
+</html>
